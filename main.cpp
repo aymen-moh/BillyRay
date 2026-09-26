@@ -116,10 +116,11 @@ int main(int argc, char* argv[]) {
             
             ClearBackground(DARKGRAY);
             
-            DrawText(std::to_string(velocity).c_str(), 50.0f, 50.0f, 50.0f, WHITE);
+            DrawText(std::to_string(54).c_str(), 50.0f, 50.0f, 50.0f, WHITE);
 
             
             DrawRectangleV( player.position, {player.p_width, player.p_height}, SKYBLUE);
+            
             for(const auto& saw : movingsawblades){
                 DrawCircleV(saw.sb_pos_current, saw.sb_radius, RED);
             }
@@ -127,6 +128,11 @@ int main(int argc, char* argv[]) {
 
 
             
+        }
+        else if(dead){
+            DrawRectangle(0, 0, width, height, Fade(BLACK, 0.60f));
+            const char* gameover = "GAME OVER!";
+            DrawText(gameover, 65.0f, height/3.0f, 80.0f, WHITE);
         }
         if(IsKeyDown(KEY_R) and dead){
             player.position = {width/2.0f, height/2.0f};
