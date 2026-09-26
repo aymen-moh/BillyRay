@@ -10,7 +10,7 @@ struct MovingSawblade {
     Vector2 sb_pos_current;
     bool sb_direction;
     float sb_speed;
-    float sb_radius = 10.0f;
+    float sb_radius;
 };
 
 
@@ -39,8 +39,8 @@ int main(int argc, char* argv[]) {
 
 
 
-    int width = 600;
-    int height = 400;
+    int width = 640;
+    int height = 416; // changed res to be able todevide by 32/16 to use tiled
     std::string title = "Billy Ray V0.0.1"; //i was gonna include the version number in a variable but i am just gonna do it this way :p
     InitWindow(width, height, title.c_str());
     SetTargetFPS(60);
@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
         BeginDrawing();
         ClearBackground(DARKGRAY);
         
-        DrawRectangleV( player.position, {player.p_width, player.p_height}, YELLOW);
+        DrawRectangleV( player.position, {player.p_width, player.p_height}, SKYBLUE);
         for(const auto& saw : movingsawblades){
             DrawCircleV(saw.sb_pos_current, saw.sb_radius, RED);
         }
