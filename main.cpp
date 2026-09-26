@@ -25,7 +25,9 @@ struct Player {
 
 };
 struct Block {
-
+    Vector2 position;
+    Vector2 size;
+    Color color;
 };
 
 struct SFX {
@@ -38,7 +40,7 @@ int main(int argc, char* argv[]) {
         { {112.0, 272.0}, {496.0, 272.0}, {112.0, 272.0}, true, 280.0f, 16.0f},
         { {496.0, 368.0}, {112.0, 368.0}, {496.0, 368.0}, true, 280.0f, 16.0f},
         { {144.0, 272.0}, {144.0, 368.0}, {144.0, 272.0}, true, 40.0f, 16.0f},
-        { {560.0, 80.0}, {560.0, 336.0}, {560.0, 80.0}, true, 120.0f, 48.0f},
+        { {560.0, 80.0}, {560.0, 336.0}, {560.0, 80.0}, true, 80.0f, 48.0f},
         { {432.0, 48.0}, {496.0, 144.0}, {432.0, 48.0}, true, 100.0f, 16.0f},
         { {432.0, 48.0}, {368.0, 144.0}, {432.0, 48.0}, true, 100.0f, 16.0f},
         { {368.0, 144.0}, {304.0, 48.0}, {368.0, 144.0}, true, 100.0f, 16.0f},
@@ -48,6 +50,14 @@ int main(int argc, char* argv[]) {
         { {112.0, 144.0}, {112.0, 48.0}, {112.0, 144.0}, true, 100.0f, 16.0f}
     };
 
+    std::vector<Block> blocks {
+        { {0.0, 160.0}, {512.0f, 96.0f}, GRAY },
+        { {0.0, 384.0}, {640.0f, 32.0f}, GRAY },
+        { {0.0, 0.0}, {640.0f, 32.0f}, GRAY },
+        { {608.0, 32.0}, {32.0f, 352.0f}, GRAY },
+        { {0.0, 32.0}, {32.0f, 128.0f}, GRAY },
+        { {0.0, 256.0}, {32.0f, 128.0f}, GRAY }
+    };
 
 
     int width = 640;
@@ -57,7 +67,7 @@ int main(int argc, char* argv[]) {
     SetTargetFPS(60);
     InitAudioDevice();
     Player player;
-    player.position = {width/2.0f, height/2.0f}; 
+    player.position = {32.0, 304.0}; 
     MovingSawblade movingsawblade;
     bool dead = false;
     sfx.failsound = LoadSound("F:\\Desktop\\Projects\\BillyRay\\Assets\\audio\\sound effects\\mixkit-wrong-answer-fail-notification-946.wav");
@@ -95,36 +105,51 @@ int main(int argc, char* argv[]) {
             
             
             float velocity;
-            if (IsKeyDown(KEY_W)){
-                player.position.y -= player.speed * dt;
+            if (IsKeyDown(KEY_A)) player.position.x -= player.speed * dt;
+            if (IsKeyDown(KEY_D)) player.position.x += player.speed * dt;
+            if (IsKeyDown(KEY_W)) player.position.y -= player.speed * dt;
+            if (IsKeyDown(KEY_S)) player.position.y += player.speed * dt;
+            p_rect.y = player.position.y;
+            p_rect.x = player.position.x;
 
-            };
+
+            for(auto& block : blocks){
+                Rectangle b_rect = {block.position.x, block.position.y, block.size.x, block.size.y};
+                if (CheckCollisionRecs(p_rect, b_rect)){
+                    if(IsKeyDown(KEY_W)){
+                        player.position.y += player.speed * dt;
+                    }
+                    else if (IsKeyDown(KEY_S)){
+                        player.position.y -= player.speed * dt;
+                    
+                    }
+                    else if(IsKeyDown(KEY_A)){
+                        player.position.x += player.speed * dt;
+                    }
+                    else if(IsKeyDown(KEY_D)){
+                        player.position.x -= player.speed * dt;
+                    }
+
+                }
+            }
+
+
             
-            if (IsKeyDown(KEY_S)){
-                player.position.y += player.speed * dt;
-                velocity = 5;
-            };
-            if (IsKeyDown(KEY_A)) {
-                player.position.x -= player.speed * dt;
-                velocity = 5;
-            };
-            if (IsKeyDown(KEY_D)) {
-                player.position.x += player.speed * dt;
-                velocity = 5;
-            };
             
             
-            ClearBackground(DARKGRAY);
+            ClearBackground(SKYBLUE);
             
             DrawText(std::to_string(54).c_str(), 50.0f, 50.0f, 50.0f, WHITE);
 
             
-            DrawRectangleV( player.position, {player.p_width, player.p_height}, SKYBLUE);
+            DrawRectangleV( player.position, {player.p_width, player.p_height}, RED);
             
             for(const auto& saw : movingsawblades){
                 DrawCircleV(saw.sb_pos_current, saw.sb_radius, RED);
             }
-            
+            for(const auto& block : blocks){
+                DrawRectangleV(block.position, block.size, block.color);
+            }
 
 
             
@@ -134,8 +159,8 @@ int main(int argc, char* argv[]) {
             const char* gameover = "GAME OVER!";
             DrawText(gameover, 65.0f, height/3.0f, 80.0f, WHITE);
         }
-        if(IsKeyDown(KEY_R) and dead){
-            player.position = {width/2.0f, height/2.0f};
+        if(IsKeyDown(KEY_R)){
+            player.position = {32.0, 304.0};
             dead = false;
         }
         EndDrawing();
