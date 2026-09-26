@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
             
         }
         else if(dead){
-            DrawRectangle(0, 0, width, height, Fade(BLACK, 0.60f));
+            DrawRectangle(0, 0, width, height, BLACK);
             const char* gameover = "GAME OVER!";
             DrawText(gameover, 65.0f, height/3.0f, 80.0f, WHITE);
         }
