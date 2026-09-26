@@ -105,32 +105,44 @@ int main(int argc, char* argv[]) {
             
             
             float velocity;
-            if (IsKeyDown(KEY_A)) player.position.x -= player.speed * dt;
-            if (IsKeyDown(KEY_D)) player.position.x += player.speed * dt;
+            
             if (IsKeyDown(KEY_W)) player.position.y -= player.speed * dt;
             if (IsKeyDown(KEY_S)) player.position.y += player.speed * dt;
             p_rect.y = player.position.y;
-            p_rect.x = player.position.x;
+            
 
 
             for(auto& block : blocks){
-                Rectangle b_rect = {block.position.x, block.position.y, block.size.x, block.size.y};
-                if (CheckCollisionRecs(p_rect, b_rect)){
+                Rectangle b_rect_y = {block.position.x, block.position.y, block.size.x, block.size.y};
+                if (CheckCollisionRecs(p_rect, b_rect_y)){
                     if(IsKeyDown(KEY_W)){
                         player.position.y += player.speed * dt;
                     }
-                    else if (IsKeyDown(KEY_S)){
+                    if (IsKeyDown(KEY_S)){
                         player.position.y -= player.speed * dt;
                     
                     }
-                    else if(IsKeyDown(KEY_A)){
+                    
+
+                }   
+            }
+
+
+            if (IsKeyDown(KEY_A)) player.position.x -= player.speed * dt;
+            if (IsKeyDown(KEY_D)) player.position.x += player.speed * dt;
+            p_rect.x = player.position.x;
+            for(auto& block : blocks){
+                Rectangle b_rect_x = {block.position.x, block.position.y, block.size.x, block.size.y};
+                if (CheckCollisionRecs(p_rect, b_rect_x)){
+                    if(IsKeyDown(KEY_A)){
                         player.position.x += player.speed * dt;
+                        
                     }
-                    else if(IsKeyDown(KEY_D)){
+                    if(IsKeyDown(KEY_D)){
                         player.position.x -= player.speed * dt;
                     }
-
                 }
+                
             }
 
 
