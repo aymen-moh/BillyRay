@@ -19,8 +19,8 @@ struct SawBlade {
 };
 struct Player {
     Vector2 position;
-    float p_width = 40.0f; // people always use this as a constant but i am just gonna make it a variable because i might add a power up that changes the scale
-    float p_height = 40.0f;
+    float p_width = 32.0f; // people always use this as a constant but i am just gonna make it a variable because i might add a power up that changes the scale
+    float p_height = 32.0f;
     float speed = 150.0f;
 
 };
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
         { {112.0, 272.0}, {496.0, 272.0}, {112.0, 272.0}, true, 280.0f, 16.0f},
         { {496.0, 368.0}, {112.0, 368.0}, {496.0, 368.0}, true, 280.0f, 16.0f},
         { {144.0, 272.0}, {144.0, 368.0}, {144.0, 272.0}, true, 40.0f, 16.0f},
-        { {560.0, 80.0}, {560.0, 336.0}, {560.0, 80.0}, true, 80.0f, 48.0f},
+        { {560.0, 30.0}, {560.0, 336.0}, {560.0, 80.0}, true, 80.0f, 48.0f},
         { {432.0, 48.0}, {496.0, 144.0}, {432.0, 48.0}, true, 100.0f, 16.0f},
         { {432.0, 48.0}, {368.0, 144.0}, {432.0, 48.0}, true, 100.0f, 16.0f},
         { {368.0, 144.0}, {304.0, 48.0}, {368.0, 144.0}, true, 100.0f, 16.0f},
@@ -77,16 +77,16 @@ int main(int argc, char* argv[]) {
     int height = 416; // changed res to be able todevide by 32/16 to use tiled
     std::string title = "Billy Ray V0.0.1"; //i was gonna include the version number in a variable but i am just gonna do it this way :p
     InitWindow(width, height, title.c_str());
-    SetTargetFPS(60);
+    SetTargetFPS(10000000);
     InitAudioDevice();
     Player player;
     player.position = {32.0, 304.0}; 
     MovingSawblade movingsawblade;
     GameStates gameState = GAME;
     bool dead = false;
-    sfx.failsound = LoadSound("F:\\Desktop\\Projects\\BillyRay\\Assets\\audio\\sound effects\\mixkit-wrong-answer-fail-notification-946.wav");
-    BeginDrawing();
-
+    sfx.failsound = LoadSound("Assets\\audio\\sound effects\\mixkit-wrong-answer-fail-notification-946.wav");
+    Texture2D player_sprite = LoadTexture("Assets\\Textures\\Icon.png");
+    Texture2D bg_lvl1 = LoadTexture("Assets\\Textures\\Background1.png");
 
     while(WindowShouldClose() == false){
         BeginDrawing();
@@ -114,8 +114,9 @@ int main(int argc, char* argv[]) {
                             if(!IsSoundPlaying(sfx.failsound)) PlaySound(sfx.failsound);
                             
                             
-                            
+
                         }
+
 
 
 
@@ -167,21 +168,20 @@ int main(int argc, char* argv[]) {
                     
                     
                     
-                    ClearBackground(SKYBLUE);
+                    DrawTexture(bg_lvl1, 0, 0, WHITE);
                     
-                    DrawText(std::to_string(54).c_str(), 50.0f, 50.0f, 50.0f, WHITE);
+                    DrawFPS(50, 10);
 
                     
-                    DrawRectangleV( player.position, {player.p_width, player.p_height}, RED);
-                    
+                                       
                     for(const auto& saw : movingsawblades){
                         DrawCircleV(saw.sb_pos_current, saw.sb_radius, RED);
                     }
                     for(const auto& block : blocks){
                         DrawRectangleV(block.position, block.size, block.color);
                     }
-                    
-
+                    DrawTexture(player_sprite, player.position.x, player.position.y, WHITE);
+                    DrawFPS(50, 10);
                     
                 }
                 else if(dead){
@@ -192,6 +192,10 @@ int main(int argc, char* argv[]) {
                 if(IsKeyDown(KEY_R)){
                     player.position = {32.0, 304.0};
                     dead = false;
+                    for(auto& saw : movingsawblades){
+                        saw.sb_pos_current = saw.sb_pos_a;
+
+                    }
                 }
                 break;
             }
@@ -202,7 +206,7 @@ int main(int argc, char* argv[]) {
     
 
         
-    
+    UnloadTexture(player_sprite);
     UnloadSound(sfx.failsound);
     CloseAudioDevice();
     CloseWindow();
