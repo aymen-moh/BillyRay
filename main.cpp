@@ -24,6 +24,19 @@ struct Player {
     float speed = 150.0f;
 
 };
+
+
+
+enum GameStates {
+    MAIN_MENU,
+    SHOPMENU,
+    GAME_OVER,
+    PAUSED,
+    GAME,
+    MENU
+};
+
+
 struct Block {
     Vector2 position;
     Vector2 size;
@@ -69,115 +82,126 @@ int main(int argc, char* argv[]) {
     Player player;
     player.position = {32.0, 304.0}; 
     MovingSawblade movingsawblade;
+    GameStates gameState = GAME;
     bool dead = false;
     sfx.failsound = LoadSound("F:\\Desktop\\Projects\\BillyRay\\Assets\\audio\\sound effects\\mixkit-wrong-answer-fail-notification-946.wav");
-    
+    BeginDrawing();
+
+
     while(WindowShouldClose() == false){
         BeginDrawing();
-        if(dead == false){
-            Rectangle p_rect = {player.position.x, player.position.y, player.p_width, player.p_height};
-            float dt = GetFrameTime();
-            for(auto& saw : movingsawblades){
-                Vector2 target;
-                if(saw.sb_direction){
-                    target = saw.sb_pos_b;
-                }
-                else{
-                    target = saw.sb_pos_a;
-                }
+        switch(gameState){
+            case GAME: {
+                if(dead == false){
+                    Rectangle p_rect = {player.position.x, player.position.y, player.p_width, player.p_height};
+                    float dt = GetFrameTime();
+                    for(auto& saw : movingsawblades){
+                        Vector2 target;
+                        if(saw.sb_direction){
+                            target = saw.sb_pos_b;
+                        }
+                        else{
+                            target = saw.sb_pos_a;
+                        }
 
-                saw.sb_pos_current = Vector2MoveTowards(saw.sb_pos_current, target, saw.sb_speed * dt);
-                if(Vector2Distance(saw.sb_pos_current, target) < 1.0f){ // needed some help from our friend gemini here, it gave me the idea of using vector2move and vector2distance
-                    saw.sb_direction = !saw.sb_direction;
-                }
+                        saw.sb_pos_current = Vector2MoveTowards(saw.sb_pos_current, target, saw.sb_speed * dt);
+                        if(Vector2Distance(saw.sb_pos_current, target) < 1.0f){ // needed some help from our friend gemini here, it gave me the idea of using vector2move and vector2distance
+                            saw.sb_direction = !saw.sb_direction;
+                        }
 
-                if(CheckCollisionCircleRec(saw.sb_pos_current, saw.sb_radius, p_rect)){
-                    dead = true;
-                    if(!IsSoundPlaying(sfx.failsound)) PlaySound(sfx.failsound);
-                    
-                    
-                    
-                }
-
-
-
-            }
-            
-            
-            float velocity;
-            
-            if (IsKeyDown(KEY_W)) player.position.y -= player.speed * dt;
-            if (IsKeyDown(KEY_S)) player.position.y += player.speed * dt;
-            p_rect.y = player.position.y;
-            
+                        if(CheckCollisionCircleRec(saw.sb_pos_current, saw.sb_radius, p_rect)){
+                            dead = true;
+                            if(!IsSoundPlaying(sfx.failsound)) PlaySound(sfx.failsound);
+                            
+                            
+                            
+                        }
 
 
-            for(auto& block : blocks){
-                Rectangle b_rect_y = {block.position.x, block.position.y, block.size.x, block.size.y};
-                if (CheckCollisionRecs(p_rect, b_rect_y)){
-                    if(IsKeyDown(KEY_W)){
-                        player.position.y += player.speed * dt;
-                    }
-                    if (IsKeyDown(KEY_S)){
-                        player.position.y -= player.speed * dt;
-                    
+
                     }
                     
+                    
+                    float velocity;
+                    
+                    if (IsKeyDown(KEY_W)) player.position.y -= player.speed * dt;
+                    if (IsKeyDown(KEY_S)) player.position.y += player.speed * dt;
+                    p_rect.y = player.position.y;
+                    
 
-                }   
-            }
+
+                    for(auto& block : blocks){
+                        Rectangle b_rect_y = {block.position.x, block.position.y, block.size.x, block.size.y};
+                        if (CheckCollisionRecs(p_rect, b_rect_y)){
+                            if(IsKeyDown(KEY_W)){
+                                player.position.y += player.speed * dt;
+                            }
+                            if (IsKeyDown(KEY_S)){
+                                player.position.y -= player.speed * dt;
+                            
+                            }
+                            
+
+                        }   
+                    }
 
 
-            if (IsKeyDown(KEY_A)) player.position.x -= player.speed * dt;
-            if (IsKeyDown(KEY_D)) player.position.x += player.speed * dt;
-            p_rect.x = player.position.x;
-            for(auto& block : blocks){
-                Rectangle b_rect_x = {block.position.x, block.position.y, block.size.x, block.size.y};
-                if (CheckCollisionRecs(p_rect, b_rect_x)){
-                    if(IsKeyDown(KEY_A)){
-                        player.position.x += player.speed * dt;
+                    if (IsKeyDown(KEY_A)) player.position.x -= player.speed * dt;
+                    if (IsKeyDown(KEY_D)) player.position.x += player.speed * dt;
+                    p_rect.x = player.position.x;
+                    for(auto& block : blocks){
+                        Rectangle b_rect_x = {block.position.x, block.position.y, block.size.x, block.size.y};
+                        if (CheckCollisionRecs(p_rect, b_rect_x)){
+                            if(IsKeyDown(KEY_A)){
+                                player.position.x += player.speed * dt;
+                                
+                            }
+                            if(IsKeyDown(KEY_D)){
+                                player.position.x -= player.speed * dt;
+                            }
+                        }
                         
                     }
-                    if(IsKeyDown(KEY_D)){
-                        player.position.x -= player.speed * dt;
+
+
+                    
+                    
+                    
+                    ClearBackground(SKYBLUE);
+                    
+                    DrawText(std::to_string(54).c_str(), 50.0f, 50.0f, 50.0f, WHITE);
+
+                    
+                    DrawRectangleV( player.position, {player.p_width, player.p_height}, RED);
+                    
+                    for(const auto& saw : movingsawblades){
+                        DrawCircleV(saw.sb_pos_current, saw.sb_radius, RED);
                     }
+                    for(const auto& block : blocks){
+                        DrawRectangleV(block.position, block.size, block.color);
+                    }
+                    
+
+                    
                 }
-                
+                else if(dead){
+                    DrawRectangle(0, 0, width, height, BLACK);
+                    const char* gameover = "GAME OVER!";
+                    DrawText(gameover, 65.0f, height/3.0f, 80.0f, WHITE);
+                }
+                if(IsKeyDown(KEY_R)){
+                    player.position = {32.0, 304.0};
+                    dead = false;
+                }
+                break;
             }
-
-
-            
-            
-            
-            ClearBackground(SKYBLUE);
-            
-            DrawText(std::to_string(54).c_str(), 50.0f, 50.0f, 50.0f, WHITE);
-
-            
-            DrawRectangleV( player.position, {player.p_width, player.p_height}, RED);
-            
-            for(const auto& saw : movingsawblades){
-                DrawCircleV(saw.sb_pos_current, saw.sb_radius, RED);
-            }
-            for(const auto& block : blocks){
-                DrawRectangleV(block.position, block.size, block.color);
-            }
-
-
-            
-        }
-        else if(dead){
-            DrawRectangle(0, 0, width, height, BLACK);
-            const char* gameover = "GAME OVER!";
-            DrawText(gameover, 65.0f, height/3.0f, 80.0f, WHITE);
-        }
-        if(IsKeyDown(KEY_R)){
-            player.position = {32.0, 304.0};
-            dead = false;
         }
         EndDrawing();
-
     }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+
+        
     
     UnloadSound(sfx.failsound);
     CloseAudioDevice();
