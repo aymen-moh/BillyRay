@@ -46,22 +46,21 @@ struct Block {
 
 
 struct WinBlocks {
-    Vector2 position;
-    Vector2 size;
-    Color color;
+    Vector2 position = {32.0, 96.0};
+    Vector2 size = {32.0f, 32.0f};
+    Color color = GREEN;
 };
 
 
 struct SFX {
     Sound failsound;
+    Sound win_sound;
 };
 
 
 int main(int argc, char* argv[]) {
     SFX sfx;
-    std::vector <WinBlocks> winning_rects{
-        { {32.0, 96.0}, {32.0f, 32.0f}, GREEN }
-    };
+
 
 
 
@@ -92,7 +91,7 @@ int main(int argc, char* argv[]) {
     int height = 416; // changed res to be able todevide by 32/16 to use tiled
     std::string title = "Billy Ray V0.0.1"; //i was gonna include the version number in a variable but i am just gonna do it this way :p
     InitWindow(width, height, title.c_str());
-    SetTargetFPS(10000000);
+    SetTargetFPS(60);
     InitAudioDevice();
     Player player;
     WinBlocks winblocks;
@@ -101,19 +100,24 @@ int main(int argc, char* argv[]) {
     GameStates gameState = GAME;
     bool dead = false;
     bool play = true;
+    
     sfx.failsound = LoadSound("Assets\\audio\\sound effects\\mixkit-wrong-answer-fail-notification-946.wav");
     Texture2D player_sprite = LoadTexture("Assets\\Textures\\Icon.png");
     Texture2D bg_lvl1 = LoadTexture("Assets\\Textures\\background.png");
     Image window_icon = LoadImage("Assets\\Textures\\icon.png");
+    sfx.win_sound = LoadSound("Assets/audio/sound effects/mixkit-tile-game-reveal-960.wav");
     ImageFormat(&window_icon, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
     SetWindowIcon(window_icon);
-    Rectangle w_rect = {winblocks.position.x, winblocks.position.y, winblocks.size.x, winblocks.size.y};
+    
+    
     while(WindowShouldClose() == false){
         BeginDrawing();
-         Rectangle p_rect = {player.position.x, player.position.y, player.p_width, player.p_height};
+        Rectangle p_rect = {player.position.x, player.position.y, player.p_width, player.p_height};
         switch(gameState){
             case GAME: {
                 if(dead == false and play){
+                    bool win_sound_played = false;
+                    Rectangle w_rect = {winblocks.position.x, winblocks.position.y, winblocks.size.x, winblocks.size.y};
                     Rectangle p_rect = {player.position.x, player.position.y, player.p_width, player.p_height};
                     float dt = GetFrameTime();
                     for(auto& saw : movingsawblades){
@@ -205,11 +209,13 @@ int main(int argc, char* argv[]) {
                     }
                     DrawTexture(player_sprite, player.position.x, player.position.y, WHITE);
                     DrawFPS(50, 10);
+                    DrawRectangleV(winblocks.position, winblocks.size, winblocks.color);
+                    if(CheckCollisionRecs(p_rect, w_rect)){
+                        gameState = WIN_SCREEN;
+                    }
 
                 }
-                if(CheckCollisionRecs(p_rect, w_rect)){
-                    gameState = WIN_SCREEN;
-                }
+                
                 else if(dead){
                     DrawRectangle(0, 0, width, height, BLACK);
                     const char* gameover = "GAME OVER!";
@@ -226,15 +232,29 @@ int main(int argc, char* argv[]) {
                 }
                 break;
             }
+            case WIN_SCREEN: {
+                
+                if (win_sound_played == false){
+                    PlaySound(sfx.win_sound);
+                    win_sound_played = true;
+                }
+
+                
+                DrawRectangle(0, 0, 640.0f, 416.0f, BLACK);
+                
+                break;
+            }
         }
         EndDrawing();
     }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+    UnloadTexture(bg_lvl1);
     UnloadImage(window_icon); 
     UnloadTexture(player_sprite);
     UnloadSound(sfx.failsound);
+    UnloadSound(sfx.win_sound);
+
     CloseAudioDevice();
     CloseWindow();
 }
