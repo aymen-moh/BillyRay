@@ -33,6 +33,7 @@ enum GameStates {
     GAME_OVER,
     PAUSED,
     GAME,
+    WIN_SCREEN,
     MENU
 };
 
@@ -43,11 +44,26 @@ struct Block {
     Color color;
 };
 
+
+struct WinBlocks {
+    Vector2 position;
+    Vector2 size;
+    Color color;
+};
+
+
 struct SFX {
     Sound failsound;
 };
+
+
 int main(int argc, char* argv[]) {
     SFX sfx;
+    std::vector <WinBlocks> winning_rects{
+        { {32.0, 96.0}, {32.0f, 32.0f}, GREEN }
+    };
+
+
 
     std::vector<MovingSawblade> movingsawblades {
         { {112.0, 272.0}, {496.0, 272.0}, {112.0, 272.0}, true, 280.0f, 16.0f},
@@ -79,6 +95,7 @@ int main(int argc, char* argv[]) {
     SetTargetFPS(10000000);
     InitAudioDevice();
     Player player;
+    WinBlocks winblocks;
     player.position = {32.0, 304.0};
     MovingSawblade movingsawblade;
     GameStates gameState = GAME;
@@ -87,9 +104,13 @@ int main(int argc, char* argv[]) {
     sfx.failsound = LoadSound("Assets\\audio\\sound effects\\mixkit-wrong-answer-fail-notification-946.wav");
     Texture2D player_sprite = LoadTexture("Assets\\Textures\\Icon.png");
     Texture2D bg_lvl1 = LoadTexture("Assets\\Textures\\background.png");
-
+    Image window_icon = LoadImage("Assets\\Textures\\icon.png");
+    ImageFormat(&window_icon, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+    SetWindowIcon(window_icon);
+    Rectangle w_rect = {winblocks.position.x, winblocks.position.y, winblocks.size.x, winblocks.size.y};
     while(WindowShouldClose() == false){
         BeginDrawing();
+         Rectangle p_rect = {player.position.x, player.position.y, player.p_width, player.p_height};
         switch(gameState){
             case GAME: {
                 if(dead == false and play){
@@ -146,13 +167,13 @@ int main(int argc, char* argv[]) {
                         }
                     }
 
-
+                    
                     if (IsKeyDown(KEY_A)) player.position.x -= player.speed * dt;
                     if (IsKeyDown(KEY_D)) player.position.x += player.speed * dt;
                     p_rect.x = player.position.x;
                     for(auto& block : blocks){
                         Rectangle b_rect_x = {block.position.x, block.position.y, block.size.x, block.size.y};
-                        block.
+                        
                         if (CheckCollisionRecs(p_rect, b_rect_x)){
                             if(IsKeyDown(KEY_A)){
                                 player.position.x += player.speed * dt;
@@ -186,6 +207,9 @@ int main(int argc, char* argv[]) {
                     DrawFPS(50, 10);
 
                 }
+                if(CheckCollisionRecs(p_rect, w_rect)){
+                    gameState = WIN_SCREEN;
+                }
                 else if(dead){
                     DrawRectangle(0, 0, width, height, BLACK);
                     const char* gameover = "GAME OVER!";
@@ -194,6 +218,7 @@ int main(int argc, char* argv[]) {
                 if(IsKeyDown(KEY_R)){
                     player.position = {32.0, 304.0};
                     dead = false;
+                    
                     for(auto& saw : movingsawblades){
                         saw.sb_pos_current = saw.sb_pos_a;
 
@@ -207,7 +232,7 @@ int main(int argc, char* argv[]) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
+    UnloadImage(window_icon); 
     UnloadTexture(player_sprite);
     UnloadSound(sfx.failsound);
     CloseAudioDevice();

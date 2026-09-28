@@ -6,7 +6,7 @@
       "label": "Build Raylib App",
       "command": "g++",
       "args": [
-        "main.c",
+        "main.cpp",
         "-o",
         "main.exe",
         "-I",
