@@ -1,0 +1,7 @@
+{
+  "code-runner.runInTerminal": true,
+  "code-runner.saveFileBeforeRun": true,
+  "code-runner.executorMap": {
+    "c": "cd $dir && gcc $fileName -o $fileNameWithoutExt.exe -I \"F:\\SDL3-3.4.16\\x86_64-w64-mingw32\\include\" -L \"F:\\SDL3-3.4.16\\x86_64-w64-mingw32\\lib\" -lSDL3 && .\\$fileNameWithoutExt.exe"
+  }
+}

@@ -85,7 +85,12 @@ int main(int argc, char* argv[]) {
         { {0.0, 32.0}, {32.0f, 128.0f}, GRAY },
         { {0.0, 256.0}, {32.0f, 128.0f}, GRAY }
     };
-
+    Rectangle restart_button_rect = {0, 0, 32, 32};
+    Rectangle menu_button_rect = {0, 0, 32, 32};
+    Rectangle menu_button_rect2 = {192.0, 256.0, 64.0f, 64.0f};
+    Rectangle next_level_button_rect = {0, 0, 32, 32};
+    Rectangle restart_button_rect2 = {288.0, 256.0, 64.0f, 64.0f};
+    Rectangle next_level_button_rect2 = {384.0, 256.0, 64.0f, 64.0f};
 
     int width = 640;
     int height = 416; // changed res to be able todevide by 32/16 to use tiled
@@ -105,12 +110,23 @@ int main(int argc, char* argv[]) {
     sfx.failsound = LoadSound("Assets/audio/sound effects/mixkit-wrong-answer-fail-notification-946.wav");
     Texture2D player_sprite = LoadTexture("Assets/Textures/Icon.png");
     Texture2D bg_lvl1 = LoadTexture("Assets/Textures/background.png");
+    Texture2D menu_button = LoadTexture("Assets/Textures/gui/menu_button.png");
+    Texture2D menu_button_hovered = LoadTexture("Assets/Textures/gui/menu_button_hovered.png");
+    Texture2D Restart_button = LoadTexture("Assets/Textures/gui/restart_button.png");
+    Texture2D restart_button_hovered = LoadTexture("Assets/Textures/gui/restart_button_hovered.png");
+    Texture2D next_level_button = LoadTexture("Assets/Textures/gui/next_level_button.png");
+    Texture2D next_level_button_hovered = LoadTexture("Assets/Textures/gui/next_level_button_hovered.png");
+    Texture2D current_menu_button;
+    Texture2D current_restart_button;
+    Texture2D current_next_level_button;
     Image window_icon = LoadImage("Assets/Textures/icon.png");
+
     sfx.win_sound = LoadSound("Assets/audio/sound effects/mixkit-tile-game-reveal-960.wav");
     ImageFormat(&window_icon, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
     SetWindowIcon(window_icon);
     bool win_sound_played = false;
     bool win_screen_loaded = true;
+
     while(WindowShouldClose() == false){
         BeginDrawing();
         Vector2 mouse_pos = GetMousePosition();
@@ -212,6 +228,7 @@ int main(int argc, char* argv[]) {
                     DrawFPS(50, 10);
                     DrawRectangleV(winblocks.position, winblocks.size, winblocks.color);
                     if(CheckCollisionRecs(p_rect, w_rect)){
+                        
                         win_screen_loaded = false;
                         gameState = WIN_SCREEN;
                     }
@@ -236,29 +253,7 @@ int main(int argc, char* argv[]) {
             }
             case WIN_SCREEN: {
                 DrawRectangle(0, 0, 640.0f, 416.0f, BLACK);
-                Texture2D menu_button;
-                Texture2D next_level_button;
-                Texture2D restart_button;
-                Rectangle restart_button_rect;
-                Rectangle menu_button_rect;
-                Rectangle next_level_button_rect;
-                Rectangle restart_button_rect2;
-                Rectangle menu_button_rect2;
-                Rectangle next_level_button_rect2;
                 
-                if (win_screen_loaded == false) {
-                    menu_button = LoadTexture("Assets/Textures/gui/menu_button.png");
-                    next_level_button = LoadTexture("Assets/Textures/gui/next_level_button.png");
-                    restart_button = LoadTexture("Assets/Textures/gui/restart_button.png");
-                    restart_button_rect = {0, 0, 32, 32};
-                    menu_button_rect = {0, 0, 32, 32};
-                    menu_button_rect2 = {192.0, 256.0, 64.0f, 64.0f};
-                    next_level_button_rect = {0, 0, 32, 32};
-                    restart_button_rect2 = {288.0, 256.0, 64.0f, 64.0f};
-                    next_level_button_rect2 = {384.0, 256.0, 64.0f, 64.0f};
-                    win_screen_loaded = true;
-                    
-                }
                 if (win_sound_played == false){
                     PlaySound(sfx.win_sound);
                     win_sound_played = true;
@@ -266,12 +261,11 @@ int main(int argc, char* argv[]) {
                 
                 if (CheckCollisionPointRec(mouse_pos, menu_button_rect2)){
                     if(prevent_memory_leak_001 == true){
-                        UnloadTexture(menu_button);
-                        menu_button = LoadTexture("Assets/Textures/gui/menu_button_hovered.png");
+                        current_menu_button = menu_button_hovered;
                         prevent_memory_leak_002 = true;
                         prevent_memory_leak_001 = false;
                     }
-                    DrawTexturePro(menu_button, menu_button_rect, menu_button_rect2, {0, 0}, 0.0f, WHITE);
+                    DrawTexturePro(current_menu_button, menu_button_rect, menu_button_rect2, {0, 0}, 0.0f, WHITE);
                     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
                         gameState = MENU;
                     }
@@ -281,12 +275,11 @@ int main(int argc, char* argv[]) {
                 }
                 else{
                     if (prevent_memory_leak_002 == true){
-                        UnloadTexture(menu_button);
-                        menu_button = LoadTexture("Assets/Textures/gui/menu_button.png");
+                        current_menu_button = menu_button;
                         prevent_memory_leak_001 = true;
-                        prevent_memory_leak_002 = false;
+                        prevent_memory_leak_002 = false; 
                     }
-                    DrawTexturePro(menu_button, menu_button_rect, menu_button_rect2, {0, 0}, 0.0f, WHITE);
+                    DrawTexturePro(current_menu_button, menu_button_rect, menu_button_rect2, {0, 0}, 0.0f, WHITE);
                 }
 
                 
