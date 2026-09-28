@@ -48,13 +48,12 @@ struct SFX {
 };
 int main(int argc, char* argv[]) {
     SFX sfx;
-    
+
     std::vector<MovingSawblade> movingsawblades {
         { {112.0, 272.0}, {496.0, 272.0}, {112.0, 272.0}, true, 280.0f, 16.0f},
         { {496.0, 368.0}, {112.0, 368.0}, {496.0, 368.0}, true, 280.0f, 16.0f},
         { {144.0, 272.0}, {144.0, 368.0}, {144.0, 272.0}, true, 40.0f, 16.0f},
         { {560.0, 30.0}, {560.0, 336.0}, {560.0, 80.0}, true, 80.0f, 48.0f},
-        { {432.0, 48.0}, {496.0, 144.0}, {432.0, 48.0}, true, 100.0f, 16.0f},
         { {432.0, 48.0}, {368.0, 144.0}, {432.0, 48.0}, true, 100.0f, 16.0f},
         { {368.0, 144.0}, {304.0, 48.0}, {368.0, 144.0}, true, 100.0f, 16.0f},
         { {304.0, 48.0}, {240.0, 144.0}, {304.0, 48.0}, true, 100.0f, 16.0f},
@@ -80,19 +79,20 @@ int main(int argc, char* argv[]) {
     SetTargetFPS(10000000);
     InitAudioDevice();
     Player player;
-    player.position = {32.0, 304.0}; 
+    player.position = {32.0, 304.0};
     MovingSawblade movingsawblade;
     GameStates gameState = GAME;
     bool dead = false;
+    bool play = true;
     sfx.failsound = LoadSound("Assets\\audio\\sound effects\\mixkit-wrong-answer-fail-notification-946.wav");
     Texture2D player_sprite = LoadTexture("Assets\\Textures\\Icon.png");
-    Texture2D bg_lvl1 = LoadTexture("Assets\\Textures\\Background1.png");
+    Texture2D bg_lvl1 = LoadTexture("Assets\\Textures\\background.png");
 
     while(WindowShouldClose() == false){
         BeginDrawing();
         switch(gameState){
             case GAME: {
-                if(dead == false){
+                if(dead == false and play){
                     Rectangle p_rect = {player.position.x, player.position.y, player.p_width, player.p_height};
                     float dt = GetFrameTime();
                     for(auto& saw : movingsawblades){
@@ -112,8 +112,8 @@ int main(int argc, char* argv[]) {
                         if(CheckCollisionCircleRec(saw.sb_pos_current, saw.sb_radius, p_rect)){
                             dead = true;
                             if(!IsSoundPlaying(sfx.failsound)) PlaySound(sfx.failsound);
-                            
-                            
+
+
 
                         }
 
@@ -121,14 +121,14 @@ int main(int argc, char* argv[]) {
 
 
                     }
-                    
-                    
+
+
                     float velocity;
-                    
+
                     if (IsKeyDown(KEY_W)) player.position.y -= player.speed * dt;
                     if (IsKeyDown(KEY_S)) player.position.y += player.speed * dt;
                     p_rect.y = player.position.y;
-                    
+
 
 
                     for(auto& block : blocks){
@@ -139,11 +139,11 @@ int main(int argc, char* argv[]) {
                             }
                             if (IsKeyDown(KEY_S)){
                                 player.position.y -= player.speed * dt;
-                            
-                            }
-                            
 
-                        }   
+                            }
+
+
+                        }
                     }
 
 
@@ -152,37 +152,39 @@ int main(int argc, char* argv[]) {
                     p_rect.x = player.position.x;
                     for(auto& block : blocks){
                         Rectangle b_rect_x = {block.position.x, block.position.y, block.size.x, block.size.y};
+                        block.
                         if (CheckCollisionRecs(p_rect, b_rect_x)){
                             if(IsKeyDown(KEY_A)){
                                 player.position.x += player.speed * dt;
-                                
+
                             }
                             if(IsKeyDown(KEY_D)){
                                 player.position.x -= player.speed * dt;
                             }
                         }
-                        
+
                     }
 
 
-                    
-                    
-                    
-                    DrawTexture(bg_lvl1, 0, 0, WHITE);
-                    
+
+
+
+                    DrawTexture(bg_lvl1, 0, 0, SKYBLUE);
+
                     DrawFPS(50, 10);
 
-                    
-                                       
+
+
                     for(const auto& saw : movingsawblades){
                         DrawCircleV(saw.sb_pos_current, saw.sb_radius, RED);
+
                     }
                     for(const auto& block : blocks){
                         DrawRectangleV(block.position, block.size, block.color);
                     }
                     DrawTexture(player_sprite, player.position.x, player.position.y, WHITE);
                     DrawFPS(50, 10);
-                    
+
                 }
                 else if(dead){
                     DrawRectangle(0, 0, width, height, BLACK);
@@ -203,11 +205,11 @@ int main(int argc, char* argv[]) {
         EndDrawing();
     }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
 
-        
+
+
     UnloadTexture(player_sprite);
     UnloadSound(sfx.failsound);
     CloseAudioDevice();
     CloseWindow();
-}   
+}
