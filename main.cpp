@@ -34,7 +34,9 @@ enum GameStates {
     PAUSED,
     GAME,
     WIN_SCREEN,
-    MENU
+    MENU,
+    RESTART,
+    NEXT_LEVEL
 };
 
 
@@ -107,12 +109,16 @@ int main(int argc, char* argv[]) {
     bool play = true;
     bool prevent_memory_leak_001 = true;
     bool prevent_memory_leak_002 = true;
+    bool prevent_memory_leak_003 = true;
+    bool prevent_memory_leak_004 = true;
+    bool prevent_memory_leak_005 = true;
+    bool prevent_memory_leak_006 = true;
     sfx.failsound = LoadSound("Assets/audio/sound effects/mixkit-wrong-answer-fail-notification-946.wav");
     Texture2D player_sprite = LoadTexture("Assets/Textures/Icon.png");
     Texture2D bg_lvl1 = LoadTexture("Assets/Textures/background.png");
     Texture2D menu_button = LoadTexture("Assets/Textures/gui/menu_button.png");
     Texture2D menu_button_hovered = LoadTexture("Assets/Textures/gui/menu_button_hovered.png");
-    Texture2D Restart_button = LoadTexture("Assets/Textures/gui/restart_button.png");
+    Texture2D restart_button = LoadTexture("Assets/Textures/gui/restart_button.png");
     Texture2D restart_button_hovered = LoadTexture("Assets/Textures/gui/restart_button_hovered.png");
     Texture2D next_level_button = LoadTexture("Assets/Textures/gui/next_level_button.png");
     Texture2D next_level_button_hovered = LoadTexture("Assets/Textures/gui/next_level_button_hovered.png");
@@ -282,6 +288,71 @@ int main(int argc, char* argv[]) {
                     DrawTexturePro(current_menu_button, menu_button_rect, menu_button_rect2, {0, 0}, 0.0f, WHITE);
                 }
 
+
+                
+                
+                if (CheckCollisionPointRec(mouse_pos, restart_button_rect2)){
+                    if(prevent_memory_leak_003 == true){
+                        current_restart_button = restart_button_hovered;
+                        prevent_memory_leak_004 = true;
+                        prevent_memory_leak_003 = false;
+                    }
+                    DrawTexturePro(current_restart_button, restart_button_rect, restart_button_rect2, {0, 0}, 0.0f, WHITE);
+                    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                        gameState = RESTART;
+                    }
+                }
+                else{
+                    if (prevent_memory_leak_004 == true){
+                        current_restart_button = restart_button;
+                        prevent_memory_leak_003 = true;
+                        prevent_memory_leak_004 = false; 
+                    }
+                    DrawTexturePro(current_restart_button, restart_button_rect, restart_button_rect2, {0, 0}, 0.0f, WHITE);
+                }
+
+
+                if (CheckCollisionPointRec(mouse_pos, restart_button_rect2)){
+                    if(prevent_memory_leak_003 == true){
+                        current_restart_button = restart_button_hovered;
+                        prevent_memory_leak_004 = true;
+                        prevent_memory_leak_003 = false;
+                    }
+                    DrawTexturePro(current_restart_button, restart_button_rect, restart_button_rect2, {0, 0}, 0.0f, WHITE);
+                    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                        gameState = RESTART;
+                    }
+                }
+                else{
+                    if (prevent_memory_leak_004 == true){
+                        current_restart_button = restart_button;
+                        prevent_memory_leak_003 = true;
+                        prevent_memory_leak_004 = false; 
+                    }
+                    DrawTexturePro(current_restart_button, restart_button_rect, restart_button_rect2, {0, 0}, 0.0f, WHITE);
+                }
+
+
+                if (CheckCollisionPointRec(mouse_pos, next_level_button_rect2)){
+                    if(prevent_memory_leak_005 == true){
+                        current_next_level_button = next_level_button_hovered;
+                        prevent_memory_leak_006 = true;
+                        prevent_memory_leak_005 = false;
+                    }
+                    DrawTexturePro(current_next_level_button, next_level_button_rect, next_level_button_rect2, {0, 0}, 0.0f, WHITE);
+                    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                        gameState = NEXT_LEVEL;
+                    }
+                }
+                else{
+                    if (prevent_memory_leak_006 == true){
+                        current_next_level_button = next_level_button;
+                        prevent_memory_leak_005 = true;
+                        prevent_memory_leak_006 = false; 
+                    }
+                    DrawTexturePro(current_next_level_button, next_level_button_rect, next_level_button_rect2, {0, 0}, 0.0f, WHITE);
+                }
+
                 
                 
 
@@ -292,6 +363,16 @@ int main(int argc, char* argv[]) {
         EndDrawing();
     }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    UnloadTexture(menu_button);
+    UnloadTexture(menu_button_hovered);
+    UnloadTexture(restart_button_hovered);
+    UnloadTexture(restart_button);
+    UnloadTexture(next_level_button);
+    UnloadTexture(next_level_button_hovered);
+    UnloadTexture(current_menu_button);
+    UnloadTexture(current_next_level_button);
+    UnloadTexture(current_restart_button);
 
     UnloadTexture(bg_lvl1);
     UnloadImage(window_icon); 
