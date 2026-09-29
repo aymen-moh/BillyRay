@@ -36,7 +36,9 @@ enum GameStates {
     WIN_SCREEN,
     MENU,
     RESTART,
-    NEXT_LEVEL
+    NEXT_LEVEL,
+    QUIT
+    
 };
 
 
@@ -66,6 +68,7 @@ int main(int argc, char* argv[]) {
 
 
 
+    
     std::vector<MovingSawblade> movingsawblades {
         { {112.0, 272.0}, {496.0, 272.0}, {112.0, 272.0}, true, 280.0f, 16.0f},
         { {496.0, 368.0}, {112.0, 368.0}, {496.0, 368.0}, true, 280.0f, 16.0f},
@@ -88,11 +91,13 @@ int main(int argc, char* argv[]) {
         { {0.0, 256.0}, {32.0f, 128.0f}, GRAY }
     };
     Rectangle A_32x32_texure_source = {0, 0, 32, 32};
-    
+    Rectangle A_128_64Texture_source = {0, 0, 128, 64};
     Rectangle menu_button_rect2 = {192.0, 256.0, 64.0f, 64.0f};
-    
     Rectangle restart_button_rect2 = {288.0, 256.0, 64.0f, 64.0f};
     Rectangle next_level_button_rect2 = {384.0, 256.0, 64.0f, 64.0f};
+    Rectangle play_button_rect = {32.0, 160.0, 96.0f, 32.0f};
+    Rectangle settings_button_rect = {32.0, 208.0, 96.0f, 32.0f};
+    Rectangle quit_button_rect = {32.0, 256.0, 96.0f, 32.0f};
 
     int width = 640;
     int height = 416; // changed res to be able todevide by 32/16 to use tiled
@@ -116,9 +121,13 @@ int main(int argc, char* argv[]) {
     Texture2D restart_button_hovered = LoadTexture("Assets/Textures/gui/restart_button_hovered.png");
     Texture2D next_level_button = LoadTexture("Assets/Textures/gui/next_level_button.png");
     Texture2D next_level_button_hovered = LoadTexture("Assets/Textures/gui/next_level_button_hovered.png");
-    Texture2D current_menu_button;
-    Texture2D current_restart_button;
-    Texture2D current_next_level_button;
+    Texture2D play_button = LoadTexture("Assets/Textures/gui/play_button.png");
+    Texture2D play_button_hovered = LoadTexture("Assets/Textures/gui/play_button_hovered.png");
+    Texture2D settings_button = LoadTexture("Assets/Textures/gui/settings_button.png");
+    Texture2D settings_button_hovered = LoadTexture("Assets/Textures/gui/settings_button_hovered.png");
+    Texture2D quit_button = LoadTexture("Assets/Textures/gui/quit_button.png");
+    Texture2D quit_button_hovered = LoadTexture("Assets/Textures/gui/quit_button_hovered.png");
+
     Image window_icon = LoadImage("Assets/Textures/icon.png");
 
     sfx.win_sound = LoadSound("Assets/audio/sound effects/mixkit-tile-game-reveal-960.wav");
@@ -152,7 +161,9 @@ int main(int argc, char* argv[]) {
                         }
 
                         if(CheckCollisionCircleRec(saw.sb_pos_current, saw.sb_radius, p_rect)){
-                            dead = true;
+                            
+                            gameState = GAME_OVER;
+                            
                             if(!IsSoundPlaying(sfx.failsound)) PlaySound(sfx.failsound);
 
 
@@ -235,20 +246,7 @@ int main(int argc, char* argv[]) {
 
                 }
                 
-                else if(dead){
-                    DrawRectangle(0, 0, width, height, BLACK);
-                    const char* gameover = "GAME OVER!";
-                    DrawText(gameover, 65.0f, height/3.0f, 80.0f, WHITE);
-                }
-                if(IsKeyDown(KEY_R)){
-                    player.position = {32.0, 304.0};
-                    dead = false;
-                    
-                    for(auto& saw : movingsawblades){
-                        saw.sb_pos_current = saw.sb_pos_a;
-
-                    }
-                }
+                
                 break;
             }
             case WIN_SCREEN: {
@@ -272,9 +270,38 @@ int main(int argc, char* argv[]) {
             }
             case GAME_OVER: {
                 
+                ClearBackground(BLACK);
+                const char* gameover = "GAME OVER!";
+                DrawText(gameover, 65.0f, height/3.0f, 80.0f, WHITE);
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, {224.0, 256.0, 64.0f, 64.0f}) ? menu_button_hovered : menu_button, A_32x32_texure_source, {224.0, 256.0, 64.0f, 64.0f}, {0, 0}, 0, WHITE);
+                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, {224.0, 256.0, 64.0f, 64.0f})) gameState = MENU;
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, {352.0, 256.0, 64.0f, 64.0f}) ? restart_button_hovered : restart_button, A_32x32_texure_source, {352.0, 256.0, 64.0f, 64.0f}, {0, 0}, 0, WHITE);
+                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, {352.0, 256.0, 64.0f, 64.0f})) gameState = RESTART;
+                
                 break;
             }
+            case RESTART: {
+                for(auto& saw : movingsawblades){
+                saw.sb_pos_current = saw.sb_pos_a;
+                
+                }
+                gameState = GAME;
+                player.position = {32.0f, 304.0f};
+                break;
+            }
+            case MENU: {
+                ClearBackground(BLACK);
+            DrawTexturePro(CheckCollisionPointRec(mouse_pos, play_button_rect) ? play_button_hovered : play_button, A_128_64Texture_source, play_button_rect, {0, 0}, 0, WHITE);
+            if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, play_button_rect)) gameState = GAME;
+            DrawTexturePro(CheckCollisionPointRec(mouse_pos, settings_button_rect) ? settings_button_hovered : settings_button, A_128_64Texture_source, settings_button_rect, {0, 0}, 0, WHITE);
+            if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, settings_button_rect));
+            DrawTexturePro(CheckCollisionPointRec(mouse_pos, quit_button_rect) ? quit_button_hovered : quit_button, A_128_64Texture_source, quit_button_rect, {0, 0}, 0, WHITE);
+            if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, quit_button_rect)) gameState = Quit;
+                break;
+            }
+        
         }
+
         EndDrawing();
     }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -285,9 +312,7 @@ int main(int argc, char* argv[]) {
     UnloadTexture(restart_button);
     UnloadTexture(next_level_button);
     UnloadTexture(next_level_button_hovered);
-    UnloadTexture(current_menu_button);
-    UnloadTexture(current_next_level_button);
-    UnloadTexture(current_restart_button);
+
 
     UnloadTexture(bg_lvl1);
     UnloadImage(window_icon); 
