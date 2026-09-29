@@ -87,10 +87,10 @@ int main(int argc, char* argv[]) {
         { {0.0, 32.0}, {32.0f, 128.0f}, GRAY },
         { {0.0, 256.0}, {32.0f, 128.0f}, GRAY }
     };
-    Rectangle restart_button_rect = {0, 0, 32, 32};
-    Rectangle menu_button_rect = {0, 0, 32, 32};
+    Rectangle A_32x32_texure_source = {0, 0, 32, 32};
+    
     Rectangle menu_button_rect2 = {192.0, 256.0, 64.0f, 64.0f};
-    Rectangle next_level_button_rect = {0, 0, 32, 32};
+    
     Rectangle restart_button_rect2 = {288.0, 256.0, 64.0f, 64.0f};
     Rectangle next_level_button_rect2 = {384.0, 256.0, 64.0f, 64.0f};
 
@@ -107,12 +107,6 @@ int main(int argc, char* argv[]) {
     GameStates gameState = GAME;
     bool dead = false;
     bool play = true;
-    bool prevent_memory_leak_001 = true;
-    bool prevent_memory_leak_002 = true;
-    bool prevent_memory_leak_003 = true;
-    bool prevent_memory_leak_004 = true;
-    bool prevent_memory_leak_005 = true;
-    bool prevent_memory_leak_006 = true;
     sfx.failsound = LoadSound("Assets/audio/sound effects/mixkit-wrong-answer-fail-notification-946.wav");
     Texture2D player_sprite = LoadTexture("Assets/Textures/Icon.png");
     Texture2D bg_lvl1 = LoadTexture("Assets/Textures/background.png");
@@ -264,98 +258,19 @@ int main(int argc, char* argv[]) {
                     PlaySound(sfx.win_sound);
                     win_sound_played = true;
                 }
-                
-                if (CheckCollisionPointRec(mouse_pos, menu_button_rect2)){
-                    if(prevent_memory_leak_001 == true){
-                        current_menu_button = menu_button_hovered;
-                        prevent_memory_leak_002 = true;
-                        prevent_memory_leak_001 = false;
-                    }
-                    DrawTexturePro(current_menu_button, menu_button_rect, menu_button_rect2, {0, 0}, 0.0f, WHITE);
-                    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-                        gameState = MENU;
-                    }
+
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, menu_button_rect2) ? menu_button_hovered : menu_button, A_32x32_texure_source, menu_button_rect2, {0, 0}, 0, WHITE);
+                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, menu_button_rect2)) gameState = MENU;
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, restart_button_rect2) ? restart_button_hovered : restart_button, A_32x32_texure_source, restart_button_rect2, {0, 0}, 0, WHITE);
+                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, restart_button_rect2)) gameState = RESTART;
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, next_level_button_rect2) ? next_level_button_hovered : next_level_button, A_32x32_texure_source, next_level_button_rect2, {0, 0}, 0, WHITE);
+                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, next_level_button_rect2)) gameState = NEXT_LEVEL;
                 
 
-                    
-                }
-                else{
-                    if (prevent_memory_leak_002 == true){
-                        current_menu_button = menu_button;
-                        prevent_memory_leak_001 = true;
-                        prevent_memory_leak_002 = false; 
-                    }
-                    DrawTexturePro(current_menu_button, menu_button_rect, menu_button_rect2, {0, 0}, 0.0f, WHITE);
-                }
-
-
                 
-                
-                if (CheckCollisionPointRec(mouse_pos, restart_button_rect2)){
-                    if(prevent_memory_leak_003 == true){
-                        current_restart_button = restart_button_hovered;
-                        prevent_memory_leak_004 = true;
-                        prevent_memory_leak_003 = false;
-                    }
-                    DrawTexturePro(current_restart_button, restart_button_rect, restart_button_rect2, {0, 0}, 0.0f, WHITE);
-                    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-                        gameState = RESTART;
-                    }
-                }
-                else{
-                    if (prevent_memory_leak_004 == true){
-                        current_restart_button = restart_button;
-                        prevent_memory_leak_003 = true;
-                        prevent_memory_leak_004 = false; 
-                    }
-                    DrawTexturePro(current_restart_button, restart_button_rect, restart_button_rect2, {0, 0}, 0.0f, WHITE);
-                }
-
-
-                if (CheckCollisionPointRec(mouse_pos, restart_button_rect2)){
-                    if(prevent_memory_leak_003 == true){
-                        current_restart_button = restart_button_hovered;
-                        prevent_memory_leak_004 = true;
-                        prevent_memory_leak_003 = false;
-                    }
-                    DrawTexturePro(current_restart_button, restart_button_rect, restart_button_rect2, {0, 0}, 0.0f, WHITE);
-                    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-                        gameState = RESTART;
-                    }
-                }
-                else{
-                    if (prevent_memory_leak_004 == true){
-                        current_restart_button = restart_button;
-                        prevent_memory_leak_003 = true;
-                        prevent_memory_leak_004 = false; 
-                    }
-                    DrawTexturePro(current_restart_button, restart_button_rect, restart_button_rect2, {0, 0}, 0.0f, WHITE);
-                }
-
-
-                if (CheckCollisionPointRec(mouse_pos, next_level_button_rect2)){
-                    if(prevent_memory_leak_005 == true){
-                        current_next_level_button = next_level_button_hovered;
-                        prevent_memory_leak_006 = true;
-                        prevent_memory_leak_005 = false;
-                    }
-                    DrawTexturePro(current_next_level_button, next_level_button_rect, next_level_button_rect2, {0, 0}, 0.0f, WHITE);
-                    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-                        gameState = NEXT_LEVEL;
-                    }
-                }
-                else{
-                    if (prevent_memory_leak_006 == true){
-                        current_next_level_button = next_level_button;
-                        prevent_memory_leak_005 = true;
-                        prevent_memory_leak_006 = false; 
-                    }
-                    DrawTexturePro(current_next_level_button, next_level_button_rect, next_level_button_rect2, {0, 0}, 0.0f, WHITE);
-                }
-
-                
-                
-
+                break;
+            }
+            case GAME_OVER: {
                 
                 break;
             }
