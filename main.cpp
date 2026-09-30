@@ -22,6 +22,7 @@ struct Player {
     float p_width = 32.0f; // people always use this as a constant but i am just gonna make it a variable because i might add a power up that changes the scale
     float p_height = 32.0f;
     float speed = 150.0f;
+    Rectangle player = {position.x, position.y, p_width, p_height};
 
 };
 
@@ -39,6 +40,12 @@ enum GameStates {
     NEXT_LEVEL,
     QUIT
     
+};
+
+enum Levels { // i just had this genius idea of putting levels in an enum and then making a switch in GAME nice.
+    Level1,
+    Level2,
+    Level3
 };
 
 
@@ -64,7 +71,11 @@ struct SFX {
 Texture2D cross_button;
 Texture2D cross_button_hovered;
 GameStates gameState;
+Levels levels;
+
 void floating_window(Rectangle window_rect){
+    
+    
     DrawRectangleRec(window_rect, WHITE);
     Rectangle dest_rec = {window_rect.x + window_rect.width - 25, window_rect.y + 10.0f, 16.0f, 16.0f};
     Rectangle src_rec = {0, 0, 16, 16};
@@ -75,7 +86,67 @@ void floating_window(Rectangle window_rect){
 
 }
 
+void draw_level(
+    Player player,
+    std::vector<MovingSawblade>& movingsawblades,
+    std::vector<Block>& blocks,
+    Rectangle win,
+    Texture2D player_icon,
+    Texture2D bg,
+    SFX& sfx
+    
+){
+    float dt = GetFrameTime();
+    for(auto& saw : movingsawblades){
 
+        Vector2 target;
+        if(saw.sb_direction){
+            target = saw.sb_pos_b;
+        }
+        else{
+            target = saw.sb_pos_a;
+        }
+        saw.sb_pos_current = Vector2MoveTowards(saw.sb_pos_current, target, saw.sb_speed * dt);
+        if(Vector2Distance(saw.sb_pos_current, target) < 1.0f){ // needed some help from our friend gemini here, it gave me the idea of using vector2move and vector2distance
+            saw.sb_direction = !saw.sb_direction;
+        }
+        if(CheckCollisionCircleRec(saw.sb_pos_current, saw.sb_radius, player.player)){
+            gameState = GAME_OVER; 
+            if(!IsSoundPlaying(sfx.failsound)) PlaySound(sfx.failsound);
+
+        }
+    }
+    if (IsKeyDown(KEY_W)) player.position.y -= player.speed * dt;
+    if (IsKeyDown(KEY_S)) player.position.y += player.speed * dt;
+    for(auto& block : blocks){
+        Rectangle b_rect_y = {block.position.x, block.position.y, block.size.x, block.size.y};
+        if (CheckCollisionRecs(player.player, b_rect_y)){
+            if(IsKeyDown(KEY_W)) player.position.y += player.speed * dt;
+            if(IsKeyDown(KEY_S)) player.position.y -= player.speed * dt;                                                
+        }
+    }
+    if (IsKeyDown(KEY_A)) player.position.x -= player.speed * dt;
+    if (IsKeyDown(KEY_D)) player.position.x += player.speed * dt;
+    for(auto& block : blocks){
+        Rectangle b_rect_x = {block.position.x, block.position.y, block.size.x, block.size.y};                        
+        if (CheckCollisionRecs(player.player, b_rect_x)){
+            if(IsKeyDown(KEY_A)) player.position.x += player.speed * dt;                            
+            if(IsKeyDown(KEY_D)) player.position.x -= player.speed * dt;                                                            
+        }
+
+    }
+    /////////////////////////////////////////////////////////////
+    DrawTexture(bg, 0, 0, SKYBLUE);
+    for(const auto& saw : movingsawblades) DrawCircleV(saw.sb_pos_current, saw.sb_radius, RED);
+    for(const auto& block : blocks)DrawRectangleV(block.position, block.size, block.color);
+    DrawTexture(player_icon, player.position.x, player.position.y, WHITE);
+    DrawFPS(50, 10);
+    DrawRectangleRec(win, GREEN);
+    if(CheckCollisionRecs(player.player, win)) gameState = WIN_SCREEN;
+
+
+}
+ 
 int main(int argc, char* argv[]) {
     SFX sfx;
 
@@ -165,104 +236,34 @@ int main(int argc, char* argv[]) {
                 if(dead == false and play){
                     Rectangle w_rect = {winblocks.position.x, winblocks.position.y, winblocks.size.x, winblocks.size.y};
                     Rectangle p_rect = {player.position.x, player.position.y, player.p_width, player.p_height};
-                    float dt = GetFrameTime();
-                    for(auto& saw : movingsawblades){
-                        Vector2 target;
-                        if(saw.sb_direction){
-                            target = saw.sb_pos_b;
-                        }
-                        else{
-                            target = saw.sb_pos_a;
-                        }
-
-                        saw.sb_pos_current = Vector2MoveTowards(saw.sb_pos_current, target, saw.sb_speed * dt);
-                        if(Vector2Distance(saw.sb_pos_current, target) < 1.0f){ // needed some help from our friend gemini here, it gave me the idea of using vector2move and vector2distance
-                            saw.sb_direction = !saw.sb_direction;
-                        }
-
-                        if(CheckCollisionCircleRec(saw.sb_pos_current, saw.sb_radius, p_rect)){
-                            
-                            gameState = GAME_OVER;
-                            
-                            if(!IsSoundPlaying(sfx.failsound)) PlaySound(sfx.failsound);
-
-
-
-                        }
-
-
-
-
-                    }
+                    float dt;
+                    
 
 
                     float velocity;
 
-                    if (IsKeyDown(KEY_W)) player.position.y -= player.speed * dt;
-                    if (IsKeyDown(KEY_S)) player.position.y += player.speed * dt;
-                    p_rect.y = player.position.y;
+                   
 
 
-
-                    for(auto& block : blocks){
-                        Rectangle b_rect_y = {block.position.x, block.position.y, block.size.x, block.size.y};
-                        if (CheckCollisionRecs(p_rect, b_rect_y)){
-                            if(IsKeyDown(KEY_W)){
-                                player.position.y += player.speed * dt;
-                            }
-                            if (IsKeyDown(KEY_S)){
-                                player.position.y -= player.speed * dt;
-
-                            }
-
-
-                        }
-                    }
 
                     
-                    if (IsKeyDown(KEY_A)) player.position.x -= player.speed * dt;
-                    if (IsKeyDown(KEY_D)) player.position.x += player.speed * dt;
-                    p_rect.x = player.position.x;
-                    for(auto& block : blocks){
-                        Rectangle b_rect_x = {block.position.x, block.position.y, block.size.x, block.size.y};
-                        
-                        if (CheckCollisionRecs(p_rect, b_rect_x)){
-                            if(IsKeyDown(KEY_A)){
-                                player.position.x += player.speed * dt;
-
-                            }
-                            if(IsKeyDown(KEY_D)){
-                                player.position.x -= player.speed * dt;
-                            }
-                        }
-
-                    }
+                    
+                    
+                    
 
 
 
 
 
-                    DrawTexture(bg_lvl1, 0, 0, SKYBLUE);
+                    
 
                     DrawFPS(50, 10);
 
 
 
-                    for(const auto& saw : movingsawblades){
-                        DrawCircleV(saw.sb_pos_current, saw.sb_radius, RED);
-
-                    }
-                    for(const auto& block : blocks){
-                        DrawRectangleV(block.position, block.size, block.color);
-                    }
-                    DrawTexture(player_sprite, player.position.x, player.position.y, WHITE);
-                    DrawFPS(50, 10);
-                    DrawRectangleV(winblocks.position, winblocks.size, winblocks.color);
-                    if(CheckCollisionRecs(p_rect, w_rect)){
+                    
                         
-                        win_screen_loaded = false;
-                        gameState = WIN_SCREEN;
-                    }
+                    
 
                 }
                 
@@ -310,6 +311,7 @@ int main(int argc, char* argv[]) {
                 break;
             }
             case MENU: {
+                
                 ClearBackground(GRAY);
                 DrawTexturePro(CheckCollisionPointRec(mouse_pos, play_button_rect) ? play_button_hovered : play_button, A_128_64Texture_source, play_button_rect, {0, 0}, 0, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, play_button_rect)) gameState = GAME;
