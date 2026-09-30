@@ -61,6 +61,20 @@ struct SFX {
     Sound win_sound;
 };
 
+Texture2D cross_button;
+Texture2D cross_button_hovered;
+GameStates gameState;
+void floating_window(Rectangle window_rect){
+    DrawRectangleRec(window_rect, WHITE);
+    Rectangle dest_rec = {window_rect.x + window_rect.width - 25, window_rect.y + 10.0f, 16.0f, 16.0f};
+    Rectangle src_rec = {0, 0, 16, 16};
+    DrawRectangleV({window_rect.x + 2.0f, window_rect.y + 2.0f}, {window_rect.width - 4.0f, window_rect.height - 4.0f}, BLACK);
+    bool colliding = CheckCollisionPointRec(GetMousePosition(), dest_rec);
+    DrawTexturePro(colliding ? cross_button_hovered : cross_button, src_rec, dest_rec, {0.0f, 0.0f}, 0, WHITE);
+    if(colliding and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) gameState = MENU; // i will set this later to be LAST_GAMESTATE
+
+}
+
 
 int main(int argc, char* argv[]) {
     SFX sfx;
@@ -90,6 +104,7 @@ int main(int argc, char* argv[]) {
         { {0.0, 32.0}, {32.0f, 128.0f}, GRAY },
         { {0.0, 256.0}, {32.0f, 128.0f}, GRAY }
     };
+    Rectangle A16_Texture_source = {0, 0, 16, 16};
     Rectangle A_32x32_texure_source = {0, 0, 32, 32};
     Rectangle A_128_64Texture_source = {0, 0, 128, 64};
     Rectangle menu_button_rect2 = {192.0, 256.0, 64.0f, 64.0f};
@@ -103,13 +118,14 @@ int main(int argc, char* argv[]) {
     int height = 416; // changed res to be able todevide by 32/16 to use tiled
     std::string title = "Billy Ray V0.0.1"; //i was gonna include the version number in a variable but i am just gonna do it this way :p
     InitWindow(width, height, title.c_str());
+    SetExitKey(KEY_NULL);
     SetTargetFPS(60);
     InitAudioDevice();
     Player player;
     WinBlocks winblocks;
     player.position = {32.0, 304.0};
     MovingSawblade movingsawblade;
-    GameStates gameState = GAME;
+    gameState = GAME;
     bool dead = false;
     bool play = true;
     sfx.failsound = LoadSound("Assets/audio/sound effects/mixkit-wrong-answer-fail-notification-946.wav");
@@ -127,6 +143,8 @@ int main(int argc, char* argv[]) {
     Texture2D settings_button_hovered = LoadTexture("Assets/Textures/gui/settings_button_hovered.png");
     Texture2D quit_button = LoadTexture("Assets/Textures/gui/quit_button.png");
     Texture2D quit_button_hovered = LoadTexture("Assets/Textures/gui/quit_button_hovered.png");
+              cross_button = LoadTexture("Assets/Textures/gui/cross_button.png");
+              cross_button_hovered = LoadTexture("Assets/Textures/gui/cross_button_hovered.png");
 
     Image window_icon = LoadImage("Assets/Textures/icon.png");
 
@@ -135,8 +153,10 @@ int main(int argc, char* argv[]) {
     SetWindowIcon(window_icon);
     bool win_sound_played = false;
     bool win_screen_loaded = true;
+    bool QUITCONFIRMED = false;
+    Font Lato = LoadFontEx("Assets/Fonts/Lato/Lato-Regular.ttf", 30, 0, 0);
 
-    while(WindowShouldClose() == false){
+    while(WindowShouldClose() == false and !QUITCONFIRMED){
         BeginDrawing();
         Vector2 mouse_pos = GetMousePosition();
         Rectangle p_rect = {player.position.x, player.position.y, player.p_width, player.p_height};
@@ -290,13 +310,22 @@ int main(int argc, char* argv[]) {
                 break;
             }
             case MENU: {
-                ClearBackground(BLACK);
-            DrawTexturePro(CheckCollisionPointRec(mouse_pos, play_button_rect) ? play_button_hovered : play_button, A_128_64Texture_source, play_button_rect, {0, 0}, 0, WHITE);
-            if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, play_button_rect)) gameState = GAME;
-            DrawTexturePro(CheckCollisionPointRec(mouse_pos, settings_button_rect) ? settings_button_hovered : settings_button, A_128_64Texture_source, settings_button_rect, {0, 0}, 0, WHITE);
-            if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, settings_button_rect));
-            DrawTexturePro(CheckCollisionPointRec(mouse_pos, quit_button_rect) ? quit_button_hovered : quit_button, A_128_64Texture_source, quit_button_rect, {0, 0}, 0, WHITE);
-            if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, quit_button_rect)) gameState = Quit;
+                ClearBackground(GRAY);
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, play_button_rect) ? play_button_hovered : play_button, A_128_64Texture_source, play_button_rect, {0, 0}, 0, WHITE);
+                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, play_button_rect)) gameState = GAME;
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, settings_button_rect) ? settings_button_hovered : settings_button, A_128_64Texture_source, settings_button_rect, {0, 0}, 0, WHITE);
+                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, settings_button_rect));
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, quit_button_rect) ? quit_button_hovered : quit_button, A_128_64Texture_source, quit_button_rect, {0, 0}, 0, WHITE);
+                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, quit_button_rect)) gameState = QUIT;
+                break;
+            }
+            case QUIT: {
+                floating_window({195.5f, 180.f, 249.0f, 100.0f});
+                
+                DrawTextPro(Lato, "Press Enter to Quit.", {269.0f, 225.0f}, {MeasureTextEx(GetFontDefault(), "Press Enter to Quit.", 15.0f, 0.0f).x/2.0f, 0.0f}, 0.0f, 28, 2.0f, WHITE);
+                if(IsKeyPressed(KEY_ENTER)) QUITCONFIRMED = true;
+                if(IsKeyPressed(KEY_ESCAPE)) gameState = MENU;         
+                
                 break;
             }
         
@@ -312,6 +341,9 @@ int main(int argc, char* argv[]) {
     UnloadTexture(restart_button);
     UnloadTexture(next_level_button);
     UnloadTexture(next_level_button_hovered);
+    UnloadTexture(cross_button);
+    UnloadTexture(cross_button_hovered);
+    UnloadFont(Lato);
 
 
     UnloadTexture(bg_lvl1);
