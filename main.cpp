@@ -3,6 +3,13 @@
 #include <string>
 #include <vector>
 #include <raymath.h>
+
+
+
+
+
+
+
 struct MovingSawblade {
 
     Vector2 sb_pos_a;
@@ -72,7 +79,7 @@ Texture2D cross_button;
 Texture2D cross_button_hovered;
 GameStates gameState;
 Levels levels;
-
+bool onetimeloop = true;
 void floating_window(Rectangle window_rect){
     
     
@@ -86,16 +93,54 @@ void floating_window(Rectangle window_rect){
 
 }
 
-void draw_level(
-    Player player,
+std::vector<MovingSawblade> lvl1_sawblades{
+    { {208.0, 304.0}, {144.0, 240.0}, {208.0, 304.0}, true, 30.0f, 16.0f},
+    { {496.0, 48.0}, {496.0, 16.0}, {496.0, 48.0}, true, 30.0f, 16.0f},
+    { {528.0, 80.0}, {560.0, 80.0}, {528.0, 80.0}, true, 30.0f, 16.0f},
+    { {272.0, 144.0}, {272.0, 240.0}, {272.0, 144.0}, true, 100.0f, 16.0f},
+    { {368.0, 240.0}, {368.0, 112.0}, {368.0, 240.0}, true, 100.0f, 16.0f}
+};
+std::vector<Block> lvl1_blocks{
+    { {256.0, 256.0}, {384.0f, 160.0f}, GRAY },
+    { {0.0, 0.0}, {352.0f, 128.0f}, GRAY },
+    { {544.0, 0.0}, {96.0f, 256.0f}, GRAY },
+    { {0.0, 128.0}, {64.0f, 288.0f}, GRAY },
+    { {64.0, 128.0}, {96.0f, 96.0f}, GRAY },
+    { {448.0, 160.0}, {96.0f, 96.0f}, GRAY },
+    { {352.0, 0.0}, {192.0f, 32.0f}, GRAY },
+    { {160.0, 352.0}, {96.0f, 64.0f}, GRAY },
+    { {64.0, 384.0}, {96.0f, 32.0f}, GRAY },
+    { {352.0, 32.0}, {64.0f, 32.0f}, GRAY },
+    { {64.0, 224.0}, {64.0f, 32.0f}, GRAY },
+    { {160.0, 128.0}, {64.0f, 32.0f}, GRAY },
+    { {192.0, 320.0}, {64.0f, 32.0f}, GRAY },
+    { {416.0, 192.0}, {32.0f, 64.0f}, GRAY },
+    { {480.0, 128.0}, {64.0f, 32.0f}, GRAY },
+    { {64.0, 256.0}, {32.0f, 32.0f}, GRAY },
+    { {160.0, 160.0}, {32.0f, 32.0f}, GRAY },
+    { {224.0, 288.0}, {32.0f, 32.0f}, GRAY },
+    { {384.0, 224.0}, {32.0f, 32.0f}, GRAY },
+    { {352.0, 64.0}, {32.0f, 32.0f}, GRAY }
+};
+
+
+void play_level(
+    Player& player,
     std::vector<MovingSawblade>& movingsawblades,
     std::vector<Block>& blocks,
     Rectangle win,
     Texture2D player_icon,
     Texture2D bg,
-    SFX& sfx
+    SFX& sfx,
+    Vector2 spawn_point
     
 ){
+    if(onetimeloop) player.position = spawn_point;
+    onetimeloop = false;
+    player.player.x = player.position.x;
+    player.player.y = player.position.y;
+    player.player.width = player.p_width;
+    player.player.height = player.p_height;
     float dt = GetFrameTime();
     for(auto& saw : movingsawblades){
 
@@ -233,41 +278,23 @@ int main(int argc, char* argv[]) {
         Rectangle p_rect = {player.position.x, player.position.y, player.p_width, player.p_height};
         switch(gameState){
             case GAME: {
-                if(dead == false and play){
-                    Rectangle w_rect = {winblocks.position.x, winblocks.position.y, winblocks.size.x, winblocks.size.y};
-                    Rectangle p_rect = {player.position.x, player.position.y, player.p_width, player.p_height};
-                    float dt;
-                    
-
-
-                    float velocity;
-
-                   
-
-
-
-                    
-                    
-                    
-                    
-
-
-
-
-
-                    
-
-                    DrawFPS(50, 10);
-
-
-
-                    
+                switch (levels){
+                    case Level1: {
+                        play_level(
+                            player,
+                            lvl1_sawblades,
+                            lvl1_blocks,
+                            {512.0f, 32.0f, 32.0f, 32.0f},
+                            player_sprite,
+                            bg_lvl1,
+                            sfx,
+                            {96.0, 320.0}
+                        );
                         
-                    
-
+                            
+                        
+                    }
                 }
-                
-                
                 break;
             }
             case WIN_SCREEN: {
@@ -302,12 +329,13 @@ int main(int argc, char* argv[]) {
                 break;
             }
             case RESTART: {
+                onetimeloop = true;
                 for(auto& saw : movingsawblades){
                 saw.sb_pos_current = saw.sb_pos_a;
                 
                 }
                 gameState = GAME;
-                player.position = {32.0f, 304.0f};
+
                 break;
             }
             case MENU: {
