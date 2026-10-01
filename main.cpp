@@ -8,7 +8,7 @@
 
 
 
-
+ 
 
 struct MovingSawblade {
 
@@ -28,7 +28,7 @@ struct Player {
     Vector2 position;
     float p_width = 32.0f; // people always use this as a constant but i am just gonna make it a variable because i might add a power up that changes the scale
     float p_height = 32.0f;
-    float speed = 150.0f;
+    float speed = 120.0f;
     Rectangle player = {position.x, position.y, p_width, p_height};
 
 };
@@ -45,7 +45,8 @@ enum GameStates {
     MENU,
     RESTART,
     NEXT_LEVEL,
-    QUIT
+    QUIT, 
+    LEVEL_MENU
     
 };
 
@@ -60,6 +61,12 @@ struct Block {
     Vector2 position;
     Vector2 size;
     Color color;
+};
+struct LevelGrid {
+    Vector2 position;
+    Vector2 size;
+    int lvl_id;
+
 };
 
 
@@ -80,6 +87,7 @@ Texture2D cross_button_hovered;
 GameStates gameState;
 Levels levels;
 bool onetimeloop = true;
+bool confirm_restart = false;
 void floating_window(Rectangle window_rect){
     
     
@@ -142,6 +150,28 @@ void play_level(
     player.player.width = player.p_width;
     player.player.height = player.p_height;
     float dt = GetFrameTime();
+    Rectangle next_step = player.player;
+    Vector2 next_pos = player.position;
+    Rectangle b_rect;
+    if(IsKeyDown(KEY_W)) next_pos.y -= player.speed *dt;
+    if(IsKeyDown(KEY_A)) next_pos.x -= player.speed *dt;
+    if(IsKeyDown(KEY_S)) next_pos.y += player.speed *dt;
+    if(IsKeyDown(KEY_D)) next_pos.x += player.speed *dt;
+    next_step = {next_pos.x, next_pos.y, player.p_width, player.p_height};
+    bool collision = false;
+    for(auto& block : blocks){
+        Rectangle b_rect = {block.position.x, block.position.y, block.size.x, block.size.y};
+        
+        if(CheckCollisionRecs(next_step, b_rect)){
+            collision = true;
+            break;
+        }
+        
+    }
+    if(!collision) player.position = next_pos;
+    {
+        
+    }
     for(auto& saw : movingsawblades){
 
         Vector2 target;
@@ -161,25 +191,10 @@ void play_level(
 
         }
     }
-    if (IsKeyDown(KEY_W)) player.position.y -= player.speed * dt;
-    if (IsKeyDown(KEY_S)) player.position.y += player.speed * dt;
-    for(auto& block : blocks){
-        Rectangle b_rect_y = {block.position.x, block.position.y, block.size.x, block.size.y};
-        if (CheckCollisionRecs(player.player, b_rect_y)){
-            if(IsKeyDown(KEY_W)) player.position.y += player.speed * dt;
-            if(IsKeyDown(KEY_S)) player.position.y -= player.speed * dt;                                                
-        }
-    }
-    if (IsKeyDown(KEY_A)) player.position.x -= player.speed * dt;
-    if (IsKeyDown(KEY_D)) player.position.x += player.speed * dt;
-    for(auto& block : blocks){
-        Rectangle b_rect_x = {block.position.x, block.position.y, block.size.x, block.size.y};                        
-        if (CheckCollisionRecs(player.player, b_rect_x)){
-            if(IsKeyDown(KEY_A)) player.position.x += player.speed * dt;                            
-            if(IsKeyDown(KEY_D)) player.position.x -= player.speed * dt;                                                            
-        }
+    
+        
 
-    }
+    
     /////////////////////////////////////////////////////////////
     DrawTexture(bg, 0, 0, SKYBLUE);
     for(const auto& saw : movingsawblades) DrawCircleV(saw.sb_pos_current, saw.sb_radius, RED);
@@ -195,30 +210,73 @@ void play_level(
 int main(int argc, char* argv[]) {
     SFX sfx;
 
+    std::vector<Block> level_grid {
+        { {64.0, 64.0}, {32.0f, 32.0f}, GRAY },
+        { {112.0, 64.0}, {32.0f, 32.0f}, GRAY },
+        { {160.0, 64.0}, {32.0f, 32.0f}, GRAY },
+        { {256.0, 64.0}, {32.0f, 32.0f}, GRAY },
+        { {208.0, 64.0}, {32.0f, 32.0f}, GRAY },
+        { {352.0, 64.0}, {32.0f, 32.0f}, GRAY },
+        { {448.0, 64.0}, {32.0f, 32.0f}, GRAY },
+        { {400.0, 64.0}, {32.0f, 32.0f}, GRAY },
+        { {544.0, 64.0}, {32.0f, 32.0f}, GRAY },
+        { {496.0, 64.0}, {32.0f, 32.0f}, GRAY },
+        { {304.0, 64.0}, {32.0f, 32.0f}, GRAY },
+        { {64.0, 128.0}, {32.0f, 32.0f}, GRAY },
+        { {112.0, 128.0}, {32.0f, 32.0f}, GRAY },
+        { {160.0, 128.0}, {32.0f, 32.0f}, GRAY },
+        { {256.0, 128.0}, {32.0f, 32.0f}, GRAY },
+        { {208.0, 128.0}, {32.0f, 32.0f}, GRAY },
+        { {352.0, 128.0}, {32.0f, 32.0f}, GRAY },
+        { {448.0, 128.0}, {32.0f, 32.0f}, GRAY },
+        { {400.0, 128.0}, {32.0f, 32.0f}, GRAY },
+        { {544.0, 128.0}, {32.0f, 32.0f}, GRAY },
+        { {496.0, 128.0}, {32.0f, 32.0f}, GRAY },
+        { {304.0, 128.0}, {32.0f, 32.0f}, GRAY },
+        { {64.0, 192.0}, {32.0f, 32.0f}, GRAY },
+        { {112.0, 192.0}, {32.0f, 32.0f}, GRAY },
+        { {160.0, 192.0}, {32.0f, 32.0f}, GRAY },
+        { {256.0, 192.0}, {32.0f, 32.0f}, GRAY },
+        { {208.0, 192.0}, {32.0f, 32.0f}, GRAY },
+        { {352.0, 192.0}, {32.0f, 32.0f}, GRAY },
+        { {448.0, 192.0}, {32.0f, 32.0f}, GRAY },
+        { {400.0, 192.0}, {32.0f, 32.0f}, GRAY },
+        { {544.0, 192.0}, {32.0f, 32.0f}, GRAY },
+        { {496.0, 192.0}, {32.0f, 32.0f}, GRAY },
+        { {304.0, 192.0}, {32.0f, 32.0f}, GRAY },
+        { {64.0, 256.0}, {32.0f, 32.0f}, GRAY },
+        { {112.0, 256.0}, {32.0f, 32.0f}, GRAY },
+        { {160.0, 256.0}, {32.0f, 32.0f}, GRAY },
+        { {256.0, 256.0}, {32.0f, 32.0f}, GRAY },
+        { {208.0, 256.0}, {32.0f, 32.0f}, GRAY },
+        { {352.0, 256.0}, {32.0f, 32.0f}, GRAY },
+        { {448.0, 256.0}, {32.0f, 32.0f}, GRAY },
+        { {400.0, 256.0}, {32.0f, 32.0f}, GRAY },
+        { {544.0, 256.0}, {32.0f, 32.0f}, GRAY },
+        { {496.0, 256.0}, {32.0f, 32.0f}, GRAY },
+        { {304.0, 256.0}, {32.0f, 32.0f}, GRAY },
+        { {64.0, 320.0}, {32.0f, 32.0f}, GRAY },
+        { {112.0, 320.0}, {32.0f, 32.0f}, GRAY },
+        { {160.0, 320.0}, {32.0f, 32.0f}, GRAY },
+        { {256.0, 320.0}, {32.0f, 32.0f}, GRAY },
+        { {208.0, 320.0}, {32.0f, 32.0f}, GRAY },
+        { {352.0, 320.0}, {32.0f, 32.0f}, GRAY },
+        { {448.0, 320.0}, {32.0f, 32.0f}, GRAY },
+        { {400.0, 320.0}, {32.0f, 32.0f}, GRAY },
+        { {544.0, 320.0}, {32.0f, 32.0f}, GRAY },
+        { {496.0, 320.0}, {32.0f, 32.0f}, GRAY },
+        { {304.0, 320.0}, {32.0f, 32.0f}, GRAY }
+    };
 
 
 
     
     std::vector<MovingSawblade> movingsawblades {
-        { {112.0, 272.0}, {496.0, 272.0}, {112.0, 272.0}, true, 280.0f, 16.0f},
-        { {496.0, 368.0}, {112.0, 368.0}, {496.0, 368.0}, true, 280.0f, 16.0f},
-        { {144.0, 272.0}, {144.0, 368.0}, {144.0, 272.0}, true, 40.0f, 16.0f},
-        { {560.0, 30.0}, {560.0, 336.0}, {560.0, 80.0}, true, 80.0f, 48.0f},
-        { {432.0, 48.0}, {368.0, 144.0}, {432.0, 48.0}, true, 100.0f, 16.0f},
-        { {368.0, 144.0}, {304.0, 48.0}, {368.0, 144.0}, true, 100.0f, 16.0f},
-        { {304.0, 48.0}, {240.0, 144.0}, {304.0, 48.0}, true, 100.0f, 16.0f},
-        { {240.0, 144.0}, {176.0, 48.0}, {240.0, 144.0}, true, 100.0f, 16.0f},
-        { {144.0, 48.0}, {144.0, 144.0}, {144.0, 48.0}, true, 100.0f, 16.0f},
-        { {112.0, 144.0}, {112.0, 48.0}, {112.0, 144.0}, true, 100.0f, 16.0f}
+        
     };
 
     std::vector<Block> blocks {
-        { {0.0, 160.0}, {512.0f, 96.0f}, GRAY },
-        { {0.0, 384.0}, {640.0f, 32.0f}, GRAY },
-        { {0.0, 0.0}, {640.0f, 32.0f}, GRAY },
-        { {608.0, 32.0}, {32.0f, 352.0f}, GRAY },
-        { {0.0, 32.0}, {32.0f, 128.0f}, GRAY },
-        { {0.0, 256.0}, {32.0f, 128.0f}, GRAY }
+        
     };
     Rectangle A16_Texture_source = {0, 0, 16, 16};
     Rectangle A_32x32_texure_source = {0, 0, 32, 32};
@@ -259,6 +317,8 @@ int main(int argc, char* argv[]) {
     Texture2D settings_button_hovered = LoadTexture("Assets/Textures/gui/settings_button_hovered.png");
     Texture2D quit_button = LoadTexture("Assets/Textures/gui/quit_button.png");
     Texture2D quit_button_hovered = LoadTexture("Assets/Textures/gui/quit_button_hovered.png");
+    Texture2D plate_button = LoadTexture("Assets/Textures/gui/empty_button.png");
+    Texture2D plate_button_hovered = LoadTexture("Assets/Textures/gui/empty_button_hovered.png");
               cross_button = LoadTexture("Assets/Textures/gui/cross_button.png");
               cross_button_hovered = LoadTexture("Assets/Textures/gui/cross_button_hovered.png");
 
@@ -329,20 +389,22 @@ int main(int argc, char* argv[]) {
                 break;
             }
             case RESTART: {
+                win_sound_played = false;
                 onetimeloop = true;
                 for(auto& saw : movingsawblades){
                 saw.sb_pos_current = saw.sb_pos_a;
-                
+                confirm_restart = true;
                 }
                 gameState = GAME;
 
                 break;
             }
             case MENU: {
-                
+                win_sound_played = false;
+                onetimeloop = true;
                 ClearBackground(GRAY);
                 DrawTexturePro(CheckCollisionPointRec(mouse_pos, play_button_rect) ? play_button_hovered : play_button, A_128_64Texture_source, play_button_rect, {0, 0}, 0, WHITE);
-                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, play_button_rect)) gameState = GAME;
+                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, play_button_rect)) gameState = LEVEL_MENU;
                 DrawTexturePro(CheckCollisionPointRec(mouse_pos, settings_button_rect) ? settings_button_hovered : settings_button, A_128_64Texture_source, settings_button_rect, {0, 0}, 0, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, settings_button_rect));
                 DrawTexturePro(CheckCollisionPointRec(mouse_pos, quit_button_rect) ? quit_button_hovered : quit_button, A_128_64Texture_source, quit_button_rect, {0, 0}, 0, WHITE);
@@ -357,6 +419,14 @@ int main(int argc, char* argv[]) {
                 if(IsKeyPressed(KEY_ESCAPE)) gameState = MENU;         
                 
                 break;
+            }
+            case LEVEL_MENU: {
+                for(auto& button : level_grid){
+                    ClearBackground(BLACK);
+                    Rectangle button_rect = {button.position.x, button.position.y, button.size.x, button.size.y};
+                    DrawTexturePro(CheckCollisionPointRec(mouse_pos,button_rect) ? plate_button_hovered : plate_button, A_32x32_texure_source, button_rect, {0, 0}, 0, WHITE);
+                }
+
             }
         
         }
