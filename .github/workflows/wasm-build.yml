@@ -1,0 +1,44 @@
+name: Build WebAssembly (HTML5)
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-web:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Setup Emscripten SDK
+      uses: mymindstorm/setup-emsdk@v12
+      with:
+        version: 'latest'
+
+    - name: Setup raylib for WebAssembly
+      run: |
+        git clone --depth 1 https://github.com/raysan5/raylib.git raylib_src
+        cd raylib_src/src
+        make PLATFORM=PLATFORM_WEB EMSDK_PATH=$EMSDK
+        cd ../..
+
+    - name: Compile C++ Game Code to HTML5
+      run: |
+        mkdir build
+        em++ main.cpp -o build/index.html \
+          -Os -Wall \
+          -I./raylib_src/src -L./raylib_src/src -lraylib \
+          -s USE_GLFW=3 \
+          -s GRAPHICS=GRAPHICS_API_OPENGL_ES2 \
+          -s ASYNCIFY \
+          --preload-file Assets
+
+    - name: Upload Web Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: web-build
+        path: build/
