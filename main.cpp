@@ -305,7 +305,7 @@ void play_level(
     DrawTexture(bg, 0, 0, SKYBLUE);
     for(const auto& block : blocks)DrawRectangleV(block.position, block.size, block.color);
     for(const auto& saw : movingsawblades){
-        Rectangle src_rec = {0, 0, sawblade.width, sawblade.height};
+        Rectangle src_rec = {0.0f, 0.0f, static_cast<float>(sawblade.width), static_cast<float>(sawblade.height)};
         Rectangle dest_rec = {saw.sb_pos_current.x, saw.sb_pos_current.y, saw.sb_radius * 2.3f, saw.sb_radius * 2.3f};
         DrawTexturePro(sawblade, src_rec, dest_rec, {dest_rec.width / 2.0f, dest_rec.height / 2.0f}, saw.rotation, WHITE);
 
