@@ -23,7 +23,7 @@ jobs:
       run: |
         git clone --depth 1 https://github.com/raysan5/raylib.git raylib_src
         cd raylib_src/src
-        make PLATFORM=PLATFORM_WEB EMSDK_PATH=$EMSDK
+        make PLATFORM=PLATFORM_WEB RAYLIB_LIBTYPE=STATIC EMSDK_PATH=$EMSDK
         cd ../..
 
     - name: Compile C++ Game Code
@@ -31,7 +31,7 @@ jobs:
         mkdir build
         em++ main.cpp -o build/index.html \
           -Os -Wall \
-          -I./raylib_src/src -L./raylib_src/src -lraylib \
+          -I./raylib_src/src ./raylib_src/src/libraylib.a \
           -s USE_GLFW=3 \
           -DGRAPHICS_API_OPENGL_ES2 \
           -s ASYNCIFY \
