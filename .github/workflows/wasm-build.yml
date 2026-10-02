@@ -19,19 +19,20 @@ jobs:
       with:
         version: 'latest'
 
-    - name: Setup raylib
+    - name: Build raylib using CMake
       run: |
         git clone --depth 1 https://github.com/raysan5/raylib.git raylib_src
-        cd raylib_src/src
-        emmake make PLATFORM=PLATFORM_WEB
-        cd ../..
+        mkdir raylib_src/build
+        cd raylib_src/build
+        emcmake cmake .. -DPLATFORM=Web -DGRAPHICS=GRAPHICS_API_OPENGL_ES2 -DBUILD_EXAMPLES=OFF
+        emmake make
 
     - name: Compile C++ Game Code
       run: |
         mkdir build
-        em++ main.cpp -o build/index.html \
+        em++ main.cpp raylib_src/build/raylib/libraylib.a -o build/index.html \
           -Os -Wall \
-          -I./raylib_src/src ./raylib_src/src/libraylib.a \
+          -I./raylib_src/src \
           -s USE_GLFW=3 \
           -DGRAPHICS_API_OPENGL_ES2 \
           -s ASYNCIFY \
