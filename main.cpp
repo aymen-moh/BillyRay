@@ -18,6 +18,7 @@ struct MovingSawblade {
     bool sb_direction;
     float sb_speed;
     float sb_radius;
+    float rotation = 0.0f;
 };
 struct SawBlade {
     Vector2 sb_position;
@@ -26,8 +27,8 @@ struct SawBlade {
 };
 struct Player {
     Vector2 position;
-    float p_width = 32.0f; // people always use this as a constant but i am just gonna make it a variable because i might add a power up that changes the scale
-    float p_height = 32.0f;
+    float p_width = 29.0f; // people always use this as a constant but i am just gonna make it a variable because i might add a power up that changes the scale
+    float p_height = 29.0f;
     float speed = 120.0f;
     Rectangle player = {position.x, position.y, p_width, p_height};
 
@@ -60,6 +61,7 @@ struct Block {
 struct LevelGrid {
     Vector2 position;
     Vector2 size;
+    bool locked;
     int lvl_id;
 
 };
@@ -83,8 +85,9 @@ GameStates gameState;
 int level = 0;
 bool onetimeloop = true;
 bool confirm_restart = false;
+int max_unlocked_level = 1;
 void floating_window(Rectangle window_rect){
-    
+
     
     DrawRectangleRec(window_rect, WHITE);
     Rectangle dest_rec = {window_rect.x + window_rect.width - 25, window_rect.y + 10.0f, 16.0f, 16.0f};
@@ -95,7 +98,7 @@ void floating_window(Rectangle window_rect){
     if(colliding and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) gameState = MENU; // i will set this later to be LAST_GAMESTATE
 
 }
-////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
 std::vector<MovingSawblade> lvl1_sawblades{
     { {208.0, 304.0}, {144.0, 240.0}, {208.0, 304.0}, true, 30.0f, 16.0f},
     { {496.0, 48.0}, {496.0, 16.0}, {496.0, 48.0}, true, 30.0f, 16.0f},
@@ -181,6 +184,33 @@ std::vector<Block> lvl3_blocks {
     { {0.0, 288.0}, {32.0f, 96.0f}, GRAY }
 };
 //////////////////////////////////////////////////////////////////////////
+std::vector<MovingSawblade> lvl4_sawblades {
+        { {240.0, 176.0}, {240.0, 240.0}, {240.0, 176.0}, true, 0.0f, 16.0f},
+        { {272.0, 176.0}, {272.0, 240.0}, {272.0, 176.0}, true, 0.0f, 16.0f},
+        { {240.0, 240.0}, {240.0, 304.0}, {240.0, 240.0}, true, 0.0f, 16.0f},
+        { {272.0, 240.0}, {272.0, 304.0}, {272.0, 240.0}, true, 0.0f, 16.0f},
+        { {304.0, 240.0}, {304.0, 304.0}, {304.0, 240.0}, true, 0.0f, 16.0f},
+        { {336.0, 208.0}, {336.0, 272.0}, {336.0, 208.0}, true, 0.0f, 16.0f},
+        { {336.0, 240.0}, {336.0, 304.0}, {336.0, 240.0}, true, 0.0f, 16.0f},
+        { {368.0, 208.0}, {368.0, 304.0}, {368.0, 208.0}, true, 0.0f, 16.0f},
+        { {432.0, 176.0}, {432.0, 240.0}, {432.0, 176.0}, true, 0.0f, 16.0f},
+        { {432.0, 208.0}, {432.0, 304.0}, {432.0, 208.0}, true, 0.0f, 16.0f},
+        { {496.0, 176.0}, {496.0, 240.0}, {496.0, 176.0}, true, 20.0f, 16.0f},
+        { {528.0, 240.0}, {528.0, 176.0}, {528.0, 240.0}, true, 20.0f, 16.0f},
+        { {208.0, 176.0}, {208.0, 304.0}, {208.0, 176.0}, true, 0.0f, 16.0f},
+        { {176.0, 176.0}, {176.0, 208.0}, {176.0, 176.0}, true, 0.0f, 16.0f},
+        { {176.0, 208.0}, {208.0, 304.0}, {176.0, 208.0}, true, 0.0f, 16.0f},
+        { {144.0, 208.0}, {112.0, 208.0}, {144.0, 208.0}, true, 0.0f, 16.0f},
+        { {112.0, 208.0}, {112.0, 144.0}, {112.0, 208.0}, true, 0.0f, 16.0f},
+        { {112.0, 176.0}, {144.0, 112.0}, {112.0, 176.0}, true, 0.0f, 16.0f}
+    };
+
+std::vector<Block> lvl4_blocks {
+    { {0.0, 256.0}, {640.0f, 160.0f}, GRAY },
+    { {0.0, 0.0}, {640.0f, 160.0f}, GRAY },
+    { {608.0, 160.0}, {32.0f, 96.0f}, GRAY },
+    { {0.0, 160.0}, {32.0f, 96.0f}, GRAY }
+    };
 //////////////////////////////////////////////////////////////////////////
 std::vector<MovingSawblade> lvl5_sawblades{
     { {208.0, 368.0}, {208.0, 48.0}, {208.0, 368.0}, true, 100.0f, 16.0f},
@@ -217,11 +247,13 @@ void play_level(
     Texture2D player_icon,
     Texture2D bg,
     SFX& sfx,
-    Vector2 spawn_point
+    Vector2 spawn_point,
+    Texture2D sawblade
     
 ){
     if(onetimeloop) player.position = spawn_point;
     onetimeloop = false;
+
     player.player.x = player.position.x;
     player.player.y = player.position.y;
     player.player.width = player.p_width;
@@ -236,21 +268,17 @@ void play_level(
     if(IsKeyDown(KEY_D)) next_pos.x += player.speed *dt;
     next_step = {next_pos.x, next_pos.y, player.p_width, player.p_height};
     bool collision = false;
+    float rotation = 0.0f;
     for(auto& block : blocks){
         Rectangle b_rect = {block.position.x, block.position.y, block.size.x, block.size.y};
-        
         if(CheckCollisionRecs(next_step, b_rect)){
             collision = true;
             break;
         }
-        
     }
     if(!collision) player.position = next_pos;
-    {
-        
-    }
     for(auto& saw : movingsawblades){
-
+        (saw.rotation >= 360) ?  saw.rotation = 0 : saw.rotation += 360 * dt;
         Vector2 target;
         if(saw.sb_direction){
             target = saw.sb_pos_b;
@@ -268,7 +296,7 @@ void play_level(
 
         }
     }
-    
+    if(IsKeyPressed(KEY_ESCAPE)) gameState = PAUSED;
         
 
     
@@ -276,13 +304,18 @@ void play_level(
     
     DrawTexture(bg, 0, 0, SKYBLUE);
     for(const auto& block : blocks)DrawRectangleV(block.position, block.size, block.color);
-    for(const auto& saw : movingsawblades) DrawCircleV(saw.sb_pos_current, saw.sb_radius, RED);
+    for(const auto& saw : movingsawblades){
+        Rectangle src_rec = {0, 0, sawblade.width, sawblade.height};
+        Rectangle dest_rec = {saw.sb_pos_current.x, saw.sb_pos_current.y, saw.sb_radius * 2.3f, saw.sb_radius * 2.3f};
+        DrawTexturePro(sawblade, src_rec, dest_rec, {dest_rec.width / 2.0f, dest_rec.height / 2.0f}, saw.rotation, WHITE);
+
+    }
     
     DrawTexture(player_icon, player.position.x, player.position.y, WHITE);
     DrawFPS(50, 10);
     DrawRectangleRec(win, GREEN);
     if(CheckCollisionRecs(player.player, win)) gameState = WIN_SCREEN;
-
+    
 
 }
  
@@ -290,62 +323,62 @@ int main(int argc, char* argv[]) {
     SFX sfx;
 
     std::vector<LevelGrid> level_grid {
-    { {64.0, 64.0}, {32.0f, 32.0f}, 1 },
-    { {112.0, 64.0}, {32.0f, 32.0f}, 2 },
-    { {160.0, 64.0}, {32.0f, 32.0f}, 3 },
-    { {208.0, 64.0}, {32.0f, 32.0f}, 4 },
-    { {256.0, 64.0}, {32.0f, 32.0f}, 5 },
-    { {304.0, 64.0}, {32.0f, 32.0f}, 6 },
-    { {352.0, 64.0}, {32.0f, 32.0f}, 7 },
-    { {400.0, 64.0}, {32.0f, 32.0f}, 8 },
-    { {448.0, 64.0}, {32.0f, 32.0f}, 9 },
-    { {496.0, 64.0}, {32.0f, 32.0f}, 10 },
-    { {544.0, 64.0}, {32.0f, 32.0f}, 11 },
-    { {64.0, 128.0}, {32.0f, 32.0f}, 12 },
-    { {112.0, 128.0}, {32.0f, 32.0f}, 13 },
-    { {160.0, 128.0}, {32.0f, 32.0f}, 14 },
-    { {208.0, 128.0}, {32.0f, 32.0f}, 15 },
-    { {256.0, 128.0}, {32.0f, 32.0f}, 16 },
-    { {304.0, 128.0}, {32.0f, 32.0f}, 17 },
-    { {352.0, 128.0}, {32.0f, 32.0f}, 18 },
-    { {400.0, 128.0}, {32.0f, 32.0f}, 19 },
-    { {448.0, 128.0}, {32.0f, 32.0f}, 20 },
-    { {496.0, 128.0}, {32.0f, 32.0f}, 21 },
-    { {544.0, 128.0}, {32.0f, 32.0f}, 22 },
-    { {64.0, 192.0}, {32.0f, 32.0f}, 23 },
-    { {112.0, 192.0}, {32.0f, 32.0f}, 24 },
-    { {160.0, 192.0}, {32.0f, 32.0f}, 25 },
-    { {208.0, 192.0}, {32.0f, 32.0f}, 26 },
-    { {256.0, 192.0}, {32.0f, 32.0f}, 27 },
-    { {304.0, 192.0}, {32.0f, 32.0f}, 28 },
-    { {352.0, 192.0}, {32.0f, 32.0f}, 29 },
-    { {400.0, 192.0}, {32.0f, 32.0f}, 30 },
-    { {448.0, 192.0}, {32.0f, 32.0f}, 31 },
-    { {496.0, 192.0}, {32.0f, 32.0f}, 32 },
-    { {544.0, 192.0}, {32.0f, 32.0f}, 33 },
-    { {64.0, 256.0}, {32.0f, 32.0f}, 34 },
-    { {112.0, 256.0}, {32.0f, 32.0f}, 35 },
-    { {160.0, 256.0}, {32.0f, 32.0f}, 36 },
-    { {208.0, 256.0}, {32.0f, 32.0f}, 37 },
-    { {256.0, 256.0}, {32.0f, 32.0f}, 38 },
-    { {304.0, 256.0}, {32.0f, 32.0f}, 39 },
-    { {352.0, 256.0}, {32.0f, 32.0f}, 40 },
-    { {400.0, 256.0}, {32.0f, 32.0f}, 41 },
-    { {448.0, 256.0}, {32.0f, 32.0f}, 42 },
-    { {496.0, 256.0}, {32.0f, 32.0f}, 43 },
-    { {544.0, 256.0}, {32.0f, 32.0f}, 44 },
-    { {64.0, 320.0}, {32.0f, 32.0f}, 45 },
-    { {112.0, 320.0}, {32.0f, 32.0f}, 46 },
-    { {160.0, 320.0}, {32.0f, 32.0f}, 47 },
-    { {208.0, 320.0}, {32.0f, 32.0f}, 48 },
-    { {256.0, 320.0}, {32.0f, 32.0f}, 49 },
-    { {304.0, 320.0}, {32.0f, 32.0f}, 50 },
-    { {352.0, 320.0}, {32.0f, 32.0f}, 51 },
-    { {400.0, 320.0}, {32.0f, 32.0f}, 52 },
-    { {448.0, 320.0}, {32.0f, 32.0f}, 53 },
-    { {496.0, 320.0}, {32.0f, 32.0f}, 54 },
-    { {544.0, 320.0}, {32.0f, 32.0f}, 55 }
-};
+        { {64.0, 64.0}, {32.0f, 32.0f}, false, 1 },
+        { {112.0, 64.0}, {32.0f, 32.0f}, true, 2 },
+        { {160.0, 64.0}, {32.0f, 32.0f}, true, 3 },
+        { {208.0, 64.0}, {32.0f, 32.0f}, true, 4 },
+        { {256.0, 64.0}, {32.0f, 32.0f}, true, 5 },
+        { {304.0, 64.0}, {32.0f, 32.0f}, true, 6 },
+        { {352.0, 64.0}, {32.0f, 32.0f}, true, 7 },
+        { {400.0, 64.0}, {32.0f, 32.0f}, true, 8 },
+        { {448.0, 64.0}, {32.0f, 32.0f}, true, 9 },
+        { {496.0, 64.0}, {32.0f, 32.0f}, true, 10 },
+        { {544.0, 64.0}, {32.0f, 32.0f}, true, 11 },
+        { {64.0, 128.0}, {32.0f, 32.0f}, true, 12 },
+        { {112.0, 128.0}, {32.0f, 32.0f}, true, 13 },
+        { {160.0, 128.0}, {32.0f, 32.0f}, true, 14 },
+        { {208.0, 128.0}, {32.0f, 32.0f}, true, 15 },
+        { {256.0, 128.0}, {32.0f, 32.0f}, true, 16 },
+        { {304.0, 128.0}, {32.0f, 32.0f}, true, 17 },
+        { {352.0, 128.0}, {32.0f, 32.0f}, true, 18 },
+        { {400.0, 128.0}, {32.0f, 32.0f}, true, 19 },
+        { {448.0, 128.0}, {32.0f, 32.0f}, true, 20 },
+        { {496.0, 128.0}, {32.0f, 32.0f}, true, 21 },
+        { {544.0, 128.0}, {32.0f, 32.0f}, true, 22 },
+        { {64.0, 192.0}, {32.0f, 32.0f}, true, 23 },
+        { {112.0, 192.0}, {32.0f, 32.0f}, true, 24 },
+        { {160.0, 192.0}, {32.0f, 32.0f}, true, 25 },
+        { {208.0, 192.0}, {32.0f, 32.0f}, true, 26 },
+        { {256.0, 192.0}, {32.0f, 32.0f}, true, 27 },
+        { {304.0, 192.0}, {32.0f, 32.0f}, true, 28 },
+        { {352.0, 192.0}, {32.0f, 32.0f}, true, 29 },
+        { {400.0, 192.0}, {32.0f, 32.0f}, true, 30 },
+        { {448.0, 192.0}, {32.0f, 32.0f}, true, 31 },
+        { {496.0, 192.0}, {32.0f, 32.0f}, true, 32 },
+        { {544.0, 192.0}, {32.0f, 32.0f}, true, 33 },
+        { {64.0, 256.0}, {32.0f, 32.0f}, true, 34 },
+        { {112.0, 256.0}, {32.0f, 32.0f}, true, 35 },
+        { {160.0, 256.0}, {32.0f, 32.0f}, true, 36 },
+        { {208.0, 256.0}, {32.0f, 32.0f}, true, 37 },
+        { {256.0, 256.0}, {32.0f, 32.0f}, true, 38 },
+        { {304.0, 256.0}, {32.0f, 32.0f}, true, 39 },
+        { {352.0, 256.0}, {32.0f, 32.0f}, true, 40 },
+        { {400.0, 256.0}, {32.0f, 32.0f}, true, 41 },
+        { {448.0, 256.0}, {32.0f, 32.0f}, true, 42 },
+        { {496.0, 256.0}, {32.0f, 32.0f}, true, 43 },
+        { {544.0, 256.0}, {32.0f, 32.0f}, true, 44 },
+        { {64.0, 320.0}, {32.0f, 32.0f}, true, 45 },
+        { {112.0, 320.0}, {32.0f, 32.0f}, true, 46 },
+        { {160.0, 320.0}, {32.0f, 32.0f}, true, 47 },
+        { {208.0, 320.0}, {32.0f, 32.0f}, true, 48 },
+        { {256.0, 320.0}, {32.0f, 32.0f}, true, 49 },
+        { {304.0, 320.0}, {32.0f, 32.0f}, true, 50 },
+        { {352.0, 320.0}, {32.0f, 32.0f}, true, 51 },
+        { {400.0, 320.0}, {32.0f, 32.0f}, true, 52 },
+        { {448.0, 320.0}, {32.0f, 32.0f}, true, 53 },
+        { {496.0, 320.0}, {32.0f, 32.0f}, true, 54 },
+        { {544.0, 320.0}, {32.0f, 32.0f}, true, 55 }
+    };
     
 
 
@@ -367,7 +400,7 @@ int main(int argc, char* argv[]) {
     Rectangle play_button_rect = {32.0, 160.0, 96.0f, 32.0f};
     Rectangle settings_button_rect = {32.0, 208.0, 96.0f, 32.0f};
     Rectangle quit_button_rect = {32.0, 256.0, 96.0f, 32.0f};
-
+    Rectangle resume_button_rect2 = {384.0, 256.0, 64.0f, 64.0f};
     int width = 640;
     int height = 416; // changed res to be able todevide by 32/16 to use tiled
     std::string title = "Billy Ray V0.0.1"; //i was gonna include the version number in a variable but i am just gonna do it this way :p
@@ -383,6 +416,9 @@ int main(int argc, char* argv[]) {
     bool dead = false;
     bool play = true;
     sfx.failsound = LoadSound("Assets/audio/sound effects/mixkit-wrong-answer-fail-notification-946.wav");
+    Texture2D sawblade = LoadTexture("Assets/Textures/sawblade.png");
+    Texture2D resume_button = LoadTexture("Assets/Textures/gui/resume_button.png");
+    Texture2D resume_button_hovered = LoadTexture("Assets/Textures/gui/resume_button_hovered.png");
     Texture2D player_sprite = LoadTexture("Assets/Textures/Icon.png");
     Texture2D bg_lvl1 = LoadTexture("Assets/Textures/background.png");
     Texture2D menu_button = LoadTexture("Assets/Textures/gui/menu_button.png");
@@ -399,6 +435,7 @@ int main(int argc, char* argv[]) {
     Texture2D quit_button_hovered = LoadTexture("Assets/Textures/gui/quit_button_hovered.png");
     Texture2D plate_button = LoadTexture("Assets/Textures/gui/empty_button.png");
     Texture2D plate_button_hovered = LoadTexture("Assets/Textures/gui/empty_button_hovered.png");
+    Texture2D locked_level_icon = LoadTexture("Assets/Textures/gui/locked_level.png");
               cross_button = LoadTexture("Assets/Textures/gui/cross_button.png");
               cross_button_hovered = LoadTexture("Assets/Textures/gui/cross_button_hovered.png");
 
@@ -418,6 +455,7 @@ int main(int argc, char* argv[]) {
         Rectangle p_rect = {player.position.x, player.position.y, player.p_width, player.p_height};
         switch(gameState){
             case GAME: {
+
                 switch (level){
                     case 1: {
                         play_level(
@@ -428,8 +466,11 @@ int main(int argc, char* argv[]) {
                             player_sprite,
                             bg_lvl1,
                             sfx,
-                            {96.0, 320.0}
+                            {96.0, 320.0},
+                            sawblade
                         );
+                        DrawTextPro(GetFontDefault(), "Welcome to my game, GLHF!", {60.0f, 32.0f}, {0.0f, 0.0f}, 0.0f, 23.0f, 2.0f, Color{255, 255, 255, 255});
+                        DrawTextPro(GetFontDefault(), "Made by @aymen-moh\n@github\n@Slack\n@hackclub", {366.5f, 301.0f}, {0.0f, 0.0f}, 0.0f, 23.0f, 2.0f, Color{255, 255, 255, 255});
                         break;
                     }
                     case 2: {
@@ -441,7 +482,8 @@ int main(int argc, char* argv[]) {
                             player_sprite,
                             bg_lvl1,
                             sfx,
-                            {48.0, 336.0}
+                            {48.0, 336.0},
+                            sawblade
                         );
                         break;
                     }
@@ -454,9 +496,24 @@ int main(int argc, char* argv[]) {
                             player_sprite,
                             bg_lvl1,
                             sfx,
-                            {48.0, 160.0}
+                            {48.0, 160.0},
+                            sawblade
                         );
                         DrawTextPro(GetFontDefault(), "This wouldve been a path to a star / coin if i didnt need to ship  soon.", {10.0f, 64.0f}, {0.0f, 0.0f}, 0.0f, 16.0f, 2.0f, Color{255, 255, 255, 255});
+                        break;
+                    }
+                    case 4: {
+                        play_level(
+                            player,
+                            lvl4_sawblades,
+                            lvl4_blocks,
+                            {560.0, 192.0, 32.0f, 32.0f},
+                            player_sprite,
+                            bg_lvl1,
+                            sfx,
+                            {32.0, 192.0},
+                            sawblade
+                        );
                         break;
                     }
                     case 5: {
@@ -468,7 +525,8 @@ int main(int argc, char* argv[]) {
                             player_sprite,
                             bg_lvl1,
                             sfx,
-                            {48.0, 336.0}
+                            {48.0, 336.0},
+                            sawblade
                         );
                         break;
                     }
@@ -482,13 +540,21 @@ int main(int argc, char* argv[]) {
                     PlaySound(sfx.win_sound);
                     win_sound_played = true;
                 }
-
+                int i = level - 1;
+                if (level == max_unlocked_level){
+                    level_grid[level].locked = false;
+                    max_unlocked_level++;
+                }
                 DrawTexturePro(CheckCollisionPointRec(mouse_pos, menu_button_rect2) ? menu_button_hovered : menu_button, A_32x32_texure_source, menu_button_rect2, {0, 0}, 0, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, menu_button_rect2)) gameState = MENU;
                 DrawTexturePro(CheckCollisionPointRec(mouse_pos, restart_button_rect2) ? restart_button_hovered : restart_button, A_32x32_texure_source, restart_button_rect2, {0, 0}, 0, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, restart_button_rect2)) gameState = RESTART;
                 DrawTexturePro(CheckCollisionPointRec(mouse_pos, next_level_button_rect2) ? next_level_button_hovered : next_level_button, A_32x32_texure_source, next_level_button_rect2, {0, 0}, 0, WHITE);
-                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, next_level_button_rect2)) gameState = NEXT_LEVEL;
+                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, next_level_button_rect2)){
+                    onetimeloop = true;
+                    gameState = GAME;
+                    level++;
+                }
                 
 
                 
@@ -543,8 +609,9 @@ int main(int argc, char* argv[]) {
                 for(auto& button : level_grid){
                     
                     Rectangle button_rect = {button.position.x, button.position.y, button.size.x, button.size.y};
-                    bool hovered = CheckCollisionPointRec(mouse_pos,button_rect);
-                    DrawTexturePro(hovered ? plate_button_hovered : plate_button, A_32x32_texure_source, button_rect, {0, 0}, 0, WHITE);
+                    Texture2D hovered_or_not_texture = CheckCollisionPointRec(mouse_pos,button_rect) ? plate_button_hovered : plate_button;
+                    
+                    DrawTexturePro(button.locked ? locked_level_icon : hovered_or_not_texture, A_32x32_texure_source, button_rect, {0, 0}, 0, WHITE);
                     int fontsize;
                     Vector2 placement = {button.position.x + 8, button.position.y + 2.5f};
                     if(button.lvl_id == 1) placement = {button.position.x + 12, button.position.y + 2.5f};
@@ -552,12 +619,24 @@ int main(int argc, char* argv[]) {
                     if(button.lvl_id > 9) fontsize = 22;
                     if(button.lvl_id > 99) fontsize = 18;
                     if(button.lvl_id < 9) fontsize = 30;
-                    DrawText(std::to_string(button.lvl_id).c_str(),placement.x, placement.y, fontsize, WHITE);
-                    if(hovered and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                    if(!button.locked) DrawText(std::to_string(button.lvl_id).c_str(),placement.x, placement.y, fontsize, WHITE);
+                    if(CheckCollisionPointRec(mouse_pos, button_rect) and IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and !button.locked){
                         level = button.lvl_id;
                         gameState = GAME;
                     }
                 }
+                break;
+            }
+            case PAUSED: {
+                ClearBackground(BLACK);
+                const char* gameover = "PAUSED";
+                DrawText(gameover, 65.0f, height/3.0f, 80.0f, WHITE);
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, menu_button_rect2) ? menu_button_hovered : menu_button, A_32x32_texure_source, menu_button_rect2, {0, 0}, 0, WHITE);
+                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, menu_button_rect2)) gameState = MENU;
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, restart_button_rect2) ? restart_button_hovered : restart_button, A_32x32_texure_source, restart_button_rect2, {0, 0}, 0, WHITE);
+                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, restart_button_rect2)) gameState = RESTART;
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, resume_button_rect2) ? resume_button_hovered : resume_button, A_32x32_texure_source, next_level_button_rect2, {0, 0}, 0, WHITE);
+                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, resume_button_rect2)) gameState = GAME;
 
             }
         
@@ -577,7 +656,7 @@ int main(int argc, char* argv[]) {
     UnloadTexture(cross_button);
     UnloadTexture(cross_button_hovered);
     UnloadFont(Lato);
-
+    UnloadTexture(sawblade);
 
     UnloadTexture(bg_lvl1);
     UnloadImage(window_icon); 
