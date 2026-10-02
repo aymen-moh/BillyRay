@@ -15,29 +15,30 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Setup Emscripten SDK
-      uses: mymindstorm/setup-emsdk@v12
+      uses: mymindstorm/setup-emsdk@v14
       with:
         version: 'latest'
 
-    - name: Setup raylib for WebAssembly
+    - name: Setup raylib
       run: |
         git clone --depth 1 https://github.com/raysan5/raylib.git raylib_src
         cd raylib_src/src
         make PLATFORM=PLATFORM_WEB EMSDK_PATH=$EMSDK
         cd ../..
 
-    - name: Compile C++ Game Code to HTML5
+    - name: Compile C++ Game Code
       run: |
         mkdir build
         em++ main.cpp -o build/index.html \
           -Os -Wall \
           -I./raylib_src/src -L./raylib_src/src -lraylib \
           -s USE_GLFW=3 \
-          -s GRAPHICS=GRAPHICS_API_OPENGL_ES2 \
+          -DGRAPHICS_API_OPENGL_ES2 \
           -s ASYNCIFY \
+          -s ALLOW_MEMORY_GROWTH=1 \
           --preload-file Assets
 
-    - name: Upload Web Build Artifact
+    - name: Upload Web Build
       uses: actions/upload-artifact@v4
       with:
         name: web-build
