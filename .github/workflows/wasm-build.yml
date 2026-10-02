@@ -23,7 +23,7 @@ jobs:
       run: |
         git clone --depth 1 https://github.com/raysan5/raylib.git raylib_src
         cd raylib_src/src
-        make PLATFORM=PLATFORM_WEB RAYLIB_LIBTYPE=STATIC EMSDK_PATH=$EMSDK
+        emmake make PLATFORM=PLATFORM_WEB
         cd ../..
 
     - name: Compile C++ Game Code
