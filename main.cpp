@@ -34,7 +34,9 @@ struct Player {
 
 };
 
-
+struct spear {
+    
+};
 
 enum GameStates {
     MAIN_MENU,
@@ -239,6 +241,36 @@ std::vector<Block> lvl5_blocks{
     { {0.0, 320.0}, {32.0f, 64.0f}, GRAY }
 };
 ///////////////////////////////////////////////////////////////////////////
+void push_notification(std::string text, float duration, int pos_change){
+    float init_current_y = 250.0f;
+    static Vector2 current = {250.0f, init_current_y};
+    static float time_spent = 0.0f;
+    static bool play_end_animation = false;
+    static bool play_start_animation = true;
+    float dt = GetFrameTime();
+    if(play_start_animation){
+        if (current.y < init_current_y + pos_change and play_start_animation) {
+            current.y += 0.5;
+        }
+        else{
+            current.y = init_current_y + pos_change;
+
+        }        
+        if(current.y >= init_current_y + pos_change){
+            time_spent += GetFrameTime();
+        }
+        if(time_spent > duration){
+            play_start_animation = false;
+            play_end_animation = true;
+        }
+    }
+    if(play_end_animation){
+        if (current.y > init_current_y) current.y -= 0.5;
+    }
+    DrawText(text.c_str(), current.x, current.y, 24, WHITE);
+    
+    
+}
 void play_level(
     Player& player,
     std::vector<MovingSawblade>& movingsawblades,
@@ -251,9 +283,12 @@ void play_level(
     Texture2D sawblade
     
 ){
-    if(onetimeloop) player.position = spawn_point;
+    if(onetimeloop){
+         player.position = spawn_point;
+         for (auto& saw : movingsawblades) saw.sb_pos_current = saw.sb_pos_a;
+    }
     onetimeloop = false;
-
+    
     player.player.x = player.position.x;
     player.player.y = player.position.y;
     player.player.width = player.p_width;
@@ -309,13 +344,13 @@ void play_level(
         Rectangle dest_rec = {saw.sb_pos_current.x, saw.sb_pos_current.y, saw.sb_radius * 2.3f, saw.sb_radius * 2.3f};
         DrawTexturePro(sawblade, src_rec, dest_rec, {dest_rec.width / 2.0f, dest_rec.height / 2.0f}, saw.rotation, WHITE);
 
-    }
+    }   
     
     DrawTexture(player_icon, player.position.x, player.position.y, WHITE);
     DrawFPS(50, 10);
     DrawRectangleRec(win, GREEN);
     if(CheckCollisionRecs(player.player, win)) gameState = WIN_SCREEN;
-    
+    push_notification("hi hru", 10.0f, 1000.0f);
 
 }
  
