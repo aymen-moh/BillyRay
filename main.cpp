@@ -6,7 +6,8 @@
 #include "levels.h"
 
 
-
+Sound notification_sound;
+Sound notification_sound_out;
 
  
 
@@ -85,9 +86,15 @@ void push_notification(std::string text, float duration, int pos_change, float a
     static Vector2 current = {320.0f, init_current_y};
     static float time_spent = 0.0f;
     static bool play_end_animation = false;
+    static bool bool1 = false;
+    static bool bool2 = false;
     static bool play_start_animation = true;
     float dt = GetFrameTime();
     if(play_start_animation){
+        if (!bool1){
+            if (!IsSoundPlaying(notification_sound))PlaySound(notification_sound);
+            bool1 = true;
+        }
         if (current.y < init_current_y + pos_change and play_start_animation) {
             current.y += anim_speed;
         }
@@ -104,6 +111,10 @@ void push_notification(std::string text, float duration, int pos_change, float a
         }
     }
     if(play_end_animation){
+        if (!bool2){
+            bool2 = true;
+            if(!IsSoundPlaying(notification_sound_out)) PlaySound(notification_sound_out);
+        }
         if (current.y > init_current_y) current.y -= anim_speed;
     }
     DrawText(text.c_str(), current.x, current.y, 24, WHITE);
@@ -189,7 +200,7 @@ void play_level(
     DrawFPS(50, 10);
     DrawRectangleRec(win, GREEN);
     if(CheckCollisionRecs(player.player, win)) gameState = WIN_SCREEN;
-    push_notification("hi hru", 10.0f, 100.0f, 2.0f);
+    push_notification("hi hru", 2.0f, 100.0f, 2.0f);
 
 }
  
@@ -219,6 +230,9 @@ int main(int argc, char* argv[]) {
     Rectangle settings_button_rect = {32.0, 208.0, 96.0f, 32.0f};
     Rectangle quit_button_rect = {32.0, 256.0, 96.0f, 32.0f};
     Rectangle resume_button_rect2 = {384.0, 256.0, 64.0f, 64.0f};
+    
+
+ 
     int width = 640;
     int height = 416; // changed res to be able todevide by 32/16 to use tiled
     std::string title = "Billy Ray V0.0.1"; //i was gonna include the version number in a variable but i am just gonna do it this way :p
@@ -226,6 +240,8 @@ int main(int argc, char* argv[]) {
     SetExitKey(KEY_NULL);
     SetTargetFPS(60);
     InitAudioDevice();
+    notification_sound = LoadSound("Assets/audio/sound effects/Toast.ogg");
+    notification_sound_out = LoadSound("Assets/audio/sound effects/Out.ogg");
     Player player;
     WinBlocks winblocks;
     player.position = {32.0, 304.0};
@@ -254,6 +270,7 @@ int main(int argc, char* argv[]) {
     Texture2D plate_button = LoadTexture("Assets/Textures/gui/empty_button.png");
     Texture2D plate_button_hovered = LoadTexture("Assets/Textures/gui/empty_button_hovered.png");
     Texture2D locked_level_icon = LoadTexture("Assets/Textures/gui/locked_level.png");
+    
               cross_button = LoadTexture("Assets/Textures/gui/cross_button.png");
               cross_button_hovered = LoadTexture("Assets/Textures/gui/cross_button_hovered.png");
 
@@ -481,7 +498,8 @@ int main(int argc, char* argv[]) {
     UnloadTexture(player_sprite);
     UnloadSound(sfx.failsound);
     UnloadSound(sfx.win_sound);
-
+    UnloadSound(notification_sound);
+    UnloadSound(notification_sound_out);
     CloseAudioDevice();
     CloseWindow();
 
