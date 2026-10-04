@@ -1,0 +1,11 @@
+void pulse_effect(float duration, float frequency, Player& player){
+    static float counter = 0.0f;
+    static float frequencey_counter = 0.0f;
+
+    float dt = GetFrameTime();
+    counter += dt;
+    frequencey_counter += dt;
+    if(counter > duration){
+        
+    }
+}

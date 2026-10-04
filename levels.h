@@ -37,6 +37,7 @@ extern std::vector<MovingSawblade> lvl3_sawblades;
 extern std::vector<Block> lvl3_blocks;
 extern std::vector<MovingSawblade> lvl4_sawblades;
 extern std::vector<Block> lvl4_blocks;
+extern Rectangle lvl4_potion;
 extern std::vector<MovingSawblade> lvl5_sawblades;
 extern std::vector<Block> lvl5_blocks;
 extern std::vector<LevelGrid> level_grid;

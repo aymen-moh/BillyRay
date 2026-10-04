@@ -8,8 +8,7 @@
 
 Sound notification_sound;
 Sound notification_sound_out;
-
- 
+Sound power_up;
 
 
 struct SawBlade {
@@ -63,11 +62,15 @@ struct SFX {
 
 Texture2D cross_button;
 Texture2D cross_button_hovered;
+Texture2D shrinking_potion;
 GameStates gameState;
 int level = 0;
 bool onetimeloop = true;
 bool confirm_restart = false;
+bool shrunk = false;
 int max_unlocked_level = 1;
+static Rectangle default_potion = {1000.0f, 1000.0f, 0.0f, 0.0f};
+
 void floating_window(Rectangle window_rect){
 
     
@@ -121,6 +124,25 @@ void push_notification(std::string text, float duration, int pos_change, float a
     
     
 }
+
+void shrink(Player& player, double amplifier, bool& play){
+    
+    static float org_player_height = player.p_height;
+    static float org_player_width =  player.p_width;
+    if(player.p_height > org_player_height / amplifier) player.p_height -= 0.3f;
+    if(player.p_width > org_player_width / amplifier) player.p_width -= 0.3f;
+    if (!IsSoundPlaying(power_up) and !play) PlaySound(power_up);
+    play = true;
+
+}
+
+void disappear(Texture2D disappear, Rectangle& disappearer){
+    disappear.height = 0;
+    disappear.width = 0;
+    disappearer = {-200, -200, 0, 0};
+}
+
+
 void play_level(
     Player& player,
     std::vector<MovingSawblade>& movingsawblades,
@@ -130,12 +152,25 @@ void play_level(
     Texture2D bg,
     SFX& sfx,
     Vector2 spawn_point,
-    Texture2D sawblade
+    Texture2D sawblade,
+    Rectangle& shrink_potion = default_potion
     
 ){
+    static Rectangle org_shrink = shrink_potion;
+    static bool shrunk = false;
+    static bool shrinking_sound = true;
+    static bool disappear = false;
+    
     if(onetimeloop){
-         player.position = spawn_point;
-         for (auto& saw : movingsawblades) saw.sb_pos_current = saw.sb_pos_a;
+        shrink_potion = org_shrink;
+        shrinking_sound = false;
+        shrunk = false;
+        shrink_potion = org_shrink;
+        player.p_height = 29.0f;
+        player.p_width = 29.0f;
+        player.position = spawn_point;
+        for (auto& saw : movingsawblades) saw.sb_pos_current = saw.sb_pos_a;
+
     }
     onetimeloop = false;
     
@@ -182,9 +217,13 @@ void play_level(
         }
     }
     if(IsKeyPressed(KEY_ESCAPE)) gameState = PAUSED;
-        
-
     
+
+    if(CheckCollisionRecs(player.player, shrink_potion)){
+        shrink_potion = {-200, -200, 0, 0};
+        shrunk = true;
+    }
+    if (shrunk) shrink(player, 1.5, shrinking_sound);
     /////////////////////////////////////////////////////////////
     
     DrawTexture(bg, 0, 0, SKYBLUE);
@@ -193,15 +232,19 @@ void play_level(
         Rectangle src_rec = {0.0f, 0.0f, static_cast<float>(sawblade.width), static_cast<float>(sawblade.height)};
         Rectangle dest_rec = {saw.sb_pos_current.x, saw.sb_pos_current.y, saw.sb_radius * 2.3f, saw.sb_radius * 2.3f};
         DrawTexturePro(sawblade, src_rec, dest_rec, {dest_rec.width / 2.0f, dest_rec.height / 2.0f}, saw.rotation, WHITE);
-
     }   
+
     
-    DrawTexture(player_icon, player.position.x, player.position.y, WHITE);
+        
+        
+
+    
+    DrawTexturePro(player_icon, {0, 0, 32, 32}, player.player, {0, 0}, 0, WHITE);
     DrawFPS(50, 10);
     DrawRectangleRec(win, GREEN);
     if(CheckCollisionRecs(player.player, win)) gameState = WIN_SCREEN;
     push_notification("hi hru", 2.0f, 100.0f, 2.0f);
-
+    DrawTexturePro(shrinking_potion, {0, 0, 16, 16}, shrink_potion, {0, 0}, 0, LIME);
 }
  
 int main(int argc, char* argv[]) {
@@ -242,6 +285,7 @@ int main(int argc, char* argv[]) {
     InitAudioDevice();
     notification_sound = LoadSound("Assets/audio/sound effects/Toast.ogg");
     notification_sound_out = LoadSound("Assets/audio/sound effects/Out.ogg");
+    power_up = LoadSound("Assets/audio/sound effects/edr-power-up-01a-484722.mp3");  
     Player player;
     WinBlocks winblocks;
     player.position = {32.0, 304.0};
@@ -270,6 +314,7 @@ int main(int argc, char* argv[]) {
     Texture2D plate_button = LoadTexture("Assets/Textures/gui/empty_button.png");
     Texture2D plate_button_hovered = LoadTexture("Assets/Textures/gui/empty_button_hovered.png");
     Texture2D locked_level_icon = LoadTexture("Assets/Textures/gui/locked_level.png");
+    shrinking_potion = LoadTexture("Assets/Textures/potion_bottle_absorption.png");
     
               cross_button = LoadTexture("Assets/Textures/gui/cross_button.png");
               cross_button_hovered = LoadTexture("Assets/Textures/gui/cross_button_hovered.png");
@@ -303,6 +348,7 @@ int main(int argc, char* argv[]) {
                             sfx,
                             {96.0, 320.0},
                             sawblade
+                        
                         );
                         DrawTextPro(GetFontDefault(), "Welcome to my game, GLHF!", {60.0f, 32.0f}, {0.0f, 0.0f}, 0.0f, 23.0f, 2.0f, Color{255, 255, 255, 255});
                         DrawTextPro(GetFontDefault(), "Made by @aymen-moh\n@github\n@Slack\n@hackclub", {366.5f, 301.0f}, {0.0f, 0.0f}, 0.0f, 23.0f, 2.0f, Color{255, 255, 255, 255});
@@ -333,7 +379,7 @@ int main(int argc, char* argv[]) {
                             sfx,
                             {48.0, 160.0},
                             sawblade
-                        );
+                        ); 
                         DrawTextPro(GetFontDefault(), "This wouldve been a path to a star / coin if i didnt need to ship  soon.", {10.0f, 64.0f}, {0.0f, 0.0f}, 0.0f, 16.0f, 2.0f, Color{255, 255, 255, 255});
                         break;
                     }
@@ -347,9 +393,11 @@ int main(int argc, char* argv[]) {
                             bg_lvl1,
                             sfx,
                             {32.0, 192.0},
-                            sawblade
+                            sawblade,
+                            lvl4_potion
                         );
                         break;
+                        
                     }
                     case 5: {
                         play_level(
