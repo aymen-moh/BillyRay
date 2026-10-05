@@ -35,6 +35,7 @@ enum GameStates {
     GAME_OVER,
     PAUSED,
     GAME,
+    SETTINGS,
     WIN_SCREEN,
     MENU,
     RESTART,
@@ -63,6 +64,8 @@ struct SFX {
 Texture2D cross_button;
 Texture2D cross_button_hovered;
 Texture2D shrinking_potion;
+Texture2D plate_button;
+Texture2D plate_button_hovered;
 GameStates gameState;
 int level = 0;
 bool onetimeloop = true;
@@ -70,8 +73,7 @@ bool confirm_restart = false;
 bool shrunk = false;
 int max_unlocked_level = 1;
 static Rectangle default_potion = {1000.0f, 1000.0f, 0.0f, 0.0f};
-
-void floating_window(Rectangle window_rect){
+void floating_window(Rectangle window_rect, bool line = false, int sections = 0){
 
     
     DrawRectangleRec(window_rect, WHITE);
@@ -81,6 +83,19 @@ void floating_window(Rectangle window_rect){
     bool colliding = CheckCollisionPointRec(GetMousePosition(), dest_rec);
     DrawTexturePro(colliding ? cross_button_hovered : cross_button, src_rec, dest_rec, {0.0f, 0.0f}, 0, WHITE);
     if(colliding and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) gameState = MENU; // i will set this later to be LAST_GAMESTATE
+    if (sections > 0){
+        double fontsize = 18.0;
+        std::string section1 = "Audio";
+        Vector2 sec1_size = MeasureTextEx(GetFontDefault(), section1.c_str(), 24, 2.0f);
+        Rectangle sections_button_rect = {window_rect.x + 10, window_rect.y + 10, sec1_size.x, sec1_size.y};
+        DrawTexturePro(CheckCollisionPointRec(GetMousePosition(), sections_button_rect) ? plate_button_hovered : plate_button, {0, 0, 32, 32}, sections_button_rect, {0, 0}, 0, WHITE);
+        DrawTextPro(GetFontDefault(), section1.c_str(), {sections_button_rect.x + 7, sections_button_rect.y + 3}, {0, 0}, 0, fontsize, 2.0f, WHITE);
+        
+    }
+    if(line){
+        DrawLine(window_rect.x, window_rect.y + 35, window_rect.x + window_rect.width, window_rect.y + 35, WHITE);
+    }
+    
 
 }
 
@@ -245,6 +260,7 @@ void play_level(
     if(CheckCollisionRecs(player.player, win)) gameState = WIN_SCREEN;
     push_notification("hi hru", 2.0f, 100.0f, 2.0f);
     DrawTexturePro(shrinking_potion, {0, 0, 16, 16}, shrink_potion, {0, 0}, 0, LIME);
+    
 }
  
 int main(int argc, char* argv[]) {
@@ -311,11 +327,10 @@ int main(int argc, char* argv[]) {
     Texture2D settings_button_hovered = LoadTexture("Assets/Textures/gui/settings_button_hovered.png");
     Texture2D quit_button = LoadTexture("Assets/Textures/gui/quit_button.png");
     Texture2D quit_button_hovered = LoadTexture("Assets/Textures/gui/quit_button_hovered.png");
-    Texture2D plate_button = LoadTexture("Assets/Textures/gui/empty_button.png");
-    Texture2D plate_button_hovered = LoadTexture("Assets/Textures/gui/empty_button_hovered.png");
     Texture2D locked_level_icon = LoadTexture("Assets/Textures/gui/locked_level.png");
-    shrinking_potion = LoadTexture("Assets/Textures/potion_bottle_absorption.png");
-    
+              plate_button = LoadTexture("Assets/Textures/gui/empty_button.png");
+              plate_button_hovered = LoadTexture("Assets/Textures/gui/empty_button_hovered.png");
+              shrinking_potion = LoadTexture("Assets/Textures/potion_bottle_absorption.png");
               cross_button = LoadTexture("Assets/Textures/gui/cross_button.png");
               cross_button_hovered = LoadTexture("Assets/Textures/gui/cross_button_hovered.png");
 
@@ -473,13 +488,13 @@ int main(int argc, char* argv[]) {
                 DrawTexturePro(CheckCollisionPointRec(mouse_pos, play_button_rect) ? play_button_hovered : play_button, A_128_64Texture_source, play_button_rect, {0, 0}, 0, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, play_button_rect)) gameState = LEVEL_MENU; 
                 DrawTexturePro(CheckCollisionPointRec(mouse_pos, settings_button_rect) ? settings_button_hovered : settings_button, A_128_64Texture_source, settings_button_rect, {0, 0}, 0, WHITE);
-                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, settings_button_rect));
+                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, settings_button_rect)) gameState = SETTINGS;
                 DrawTexturePro(CheckCollisionPointRec(mouse_pos, quit_button_rect) ? quit_button_hovered : quit_button, A_128_64Texture_source, quit_button_rect, {0, 0}, 0, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, quit_button_rect)) gameState = QUIT;
                 break;
             }
             case QUIT: {
-                floating_window({195.5f, 180.f, 249.0f, 100.0f});
+                floating_window({195.5f, 180.f, 249.0f, 100.0f}, 1);
                 
                 DrawTextPro(Lato, "Press Enter to Quit.", {269.0f, 225.0f}, {MeasureTextEx(GetFontDefault(), "Press Enter to Quit.", 15.0f, 0.0f).x/2.0f, 0.0f}, 0.0f, 28, 2.0f, WHITE);
                 if(IsKeyPressed(KEY_ENTER)) QUITCONFIRMED = true;
@@ -520,12 +535,25 @@ int main(int argc, char* argv[]) {
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, restart_button_rect2)) gameState = RESTART;
                 DrawTexturePro(CheckCollisionPointRec(mouse_pos, resume_button_rect2) ? resume_button_hovered : resume_button, A_32x32_texure_source, next_level_button_rect2, {0, 0}, 0, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, resume_button_rect2)) gameState = GAME;
-
+                break;
+            }
+            case SETTINGS: {
+                Rectangle target = {77, 62, 500, 300};
+                floating_window(target, true);
+                std::string title = "SETTINGS";
+                DrawTextPro(Lato, title.c_str(), {target.x + 200, target.y + 5}, {0, 0}, 0, 24, 2.0f, WHITE);
+                
             }
         
         }
-
-        EndDrawing();
+        Vector2 mos = GetMousePosition();
+    int mos11 = mos.x;
+    int mos22 = mos.y;
+    std::string mos1 = std::to_string(mos11);
+    std::string mos2 = std::to_string(mos22);
+    DrawText(mos1.c_str(), 50, 50, 24, WHITE);
+    DrawText(mos2.c_str(), 100, 50, 24, WHITE);
+    EndDrawing();
     } 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     UnloadTexture(plate_button);

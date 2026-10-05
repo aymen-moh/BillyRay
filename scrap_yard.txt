@@ -9,3 +9,14 @@ void pulse_effect(float duration, float frequency, Player& player){
         
     }
 }
+
+std::string death_mesagges[] = {
+    "Better luck next time!",
+    "These sawblades can't be that hard to avoid",
+    "OMG TRY A LITTLE HARDER!",
+    "You can't be serious.",
+    "Alright just put the fries in the bag vro.",
+    "How about..... not dying."
+    "Is a cat walking on your keyboard? because it seems like it."
+    
+};

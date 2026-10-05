@@ -1,7 +1,7 @@
 #pragma once
 #include <raylib.h>
 #include <vector>
-
+#include <string>
 
 struct MovingSawblade {
 
@@ -41,3 +41,5 @@ extern Rectangle lvl4_potion;
 extern std::vector<MovingSawblade> lvl5_sawblades;
 extern std::vector<Block> lvl5_blocks;
 extern std::vector<LevelGrid> level_grid;
+
+extern std::string death_mesagges[10];
