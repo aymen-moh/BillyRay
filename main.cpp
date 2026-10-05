@@ -9,8 +9,12 @@
 Sound notification_sound;
 Sound notification_sound_out;
 Sound power_up;
+Font Lato;
+bool music_enabled = true;
+bool sfx_enabled = true;
+bool admin = false; 
 
-
+int st_menu = 1;
 struct SawBlade {
     Vector2 sb_position;
     float radius;
@@ -66,6 +70,10 @@ Texture2D cross_button_hovered;
 Texture2D shrinking_potion;
 Texture2D plate_button;
 Texture2D plate_button_hovered;
+Texture2D checkbox;
+Texture2D checkbox_hovered;
+Texture2D checkbox_toggled_hovered;
+Texture2D checkbox_toggled;
 GameStates gameState;
 int level = 0;
 bool onetimeloop = true;
@@ -73,8 +81,21 @@ bool confirm_restart = false;
 bool shrunk = false;
 int max_unlocked_level = 1;
 static Rectangle default_potion = {1000.0f, 1000.0f, 0.0f, 0.0f};
-void floating_window(Rectangle window_rect, bool line = false, int sections = 0){
 
+void toggle(Vector2 position, bool& toggled, std::string toggle_text){
+    Rectangle toggle_rec = {position.x, position.y, 16, 16};
+    Rectangle TEXTURE8X8 = {0, 0, 8, 8};
+    bool hovered = CheckCollisionPointRec(GetMousePosition(), toggle_rec);
+    DrawTexturePro(hovered ? toggled ? checkbox_toggled_hovered : checkbox_hovered : toggled ? checkbox_toggled : checkbox, TEXTURE8X8, toggle_rec, {0, 0}, 0, WHITE);
+    if(hovered and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        toggled = !toggled;
+    }
+    DrawText(toggle_text.c_str(), position.x + 25, position.y + 1, 16, WHITE);
+    }
+
+void slider
+
+void floating_window(Rectangle window_rect, bool line = false, int sections = 0){
     
     DrawRectangleRec(window_rect, WHITE);
     Rectangle dest_rec = {window_rect.x + window_rect.width - 25, window_rect.y + 10.0f, 16.0f, 16.0f};
@@ -87,10 +108,25 @@ void floating_window(Rectangle window_rect, bool line = false, int sections = 0)
         double fontsize = 18.0;
         std::string section1 = "Audio";
         Vector2 sec1_size = MeasureTextEx(GetFontDefault(), section1.c_str(), 24, 2.0f);
-        Rectangle sections_button_rect = {window_rect.x + 10, window_rect.y + 10, sec1_size.x, sec1_size.y};
+        Rectangle sections_button_rect = {window_rect.x + 20, window_rect.y + 50, sec1_size.x, sec1_size.y};
         DrawTexturePro(CheckCollisionPointRec(GetMousePosition(), sections_button_rect) ? plate_button_hovered : plate_button, {0, 0, 32, 32}, sections_button_rect, {0, 0}, 0, WHITE);
         DrawTextPro(GetFontDefault(), section1.c_str(), {sections_button_rect.x + 7, sections_button_rect.y + 3}, {0, 0}, 0, fontsize, 2.0f, WHITE);
-        
+        if(CheckCollisionPointRec(GetMousePosition(), sections_button_rect) and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) st_menu = 1;
+
+        std::string section2 = "Controls";
+        Vector2 sec2_size = MeasureTextEx(GetFontDefault(), section2.c_str(), 24, 2.0f);
+        Rectangle sections2_button_rect = {sections_button_rect.x + sections_button_rect.width + 10, window_rect.y + 50, sec2_size.x, sec2_size.y};
+        DrawTexturePro(CheckCollisionPointRec(GetMousePosition(), sections2_button_rect) ? plate_button_hovered : plate_button, {0, 0, 32, 32}, sections2_button_rect, {0, 0}, 0, WHITE);
+        DrawTextPro(GetFontDefault(), section2.c_str(), {sections2_button_rect.x + 10, sections2_button_rect.y + 3}, {0, 0}, 0, fontsize, 2.0f, WHITE);
+        if(CheckCollisionPointRec(GetMousePosition(), sections2_button_rect) and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) st_menu = 2;
+
+
+        std::string section3 = "Other";
+        Vector2 sec3_size = MeasureTextEx(GetFontDefault(), section2.c_str(), 24, 2.0f);
+        Rectangle sections3_button_rect = {sections2_button_rect.x + sections2_button_rect.width + 10, window_rect.y + 50, sec3_size.x, sec3_size.y};
+        DrawTexturePro(CheckCollisionPointRec(GetMousePosition(), sections3_button_rect) ? plate_button_hovered : plate_button, {0, 0, 32, 32}, sections3_button_rect, {0, 0}, 0, WHITE);
+        DrawTextPro(GetFontDefault(), section3.c_str(), {sections3_button_rect.x + 10, sections3_button_rect.y + 3}, {0, 0}, 0, fontsize, 2.0f, WHITE);
+        if(CheckCollisionPointRec(GetMousePosition(), sections3_button_rect) and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) st_menu = 3;
     }
     if(line){
         DrawLine(window_rect.x, window_rect.y + 35, window_rect.x + window_rect.width, window_rect.y + 35, WHITE);
@@ -328,6 +364,10 @@ int main(int argc, char* argv[]) {
     Texture2D quit_button = LoadTexture("Assets/Textures/gui/quit_button.png");
     Texture2D quit_button_hovered = LoadTexture("Assets/Textures/gui/quit_button_hovered.png");
     Texture2D locked_level_icon = LoadTexture("Assets/Textures/gui/locked_level.png");
+              checkbox = LoadTexture("Assets/Textures/gui/checkbox.png");
+              checkbox_hovered = LoadTexture("Assets/Textures/gui/checkbox_hovered.png");
+              checkbox_toggled = LoadTexture("Assets/Textures/gui/checkbox_checked.png");
+              checkbox_toggled_hovered = LoadTexture("Assets/Textures/gui/checkbox_checked_hovered.png");
               plate_button = LoadTexture("Assets/Textures/gui/empty_button.png");
               plate_button_hovered = LoadTexture("Assets/Textures/gui/empty_button_hovered.png");
               shrinking_potion = LoadTexture("Assets/Textures/potion_bottle_absorption.png");
@@ -539,10 +579,22 @@ int main(int argc, char* argv[]) {
             }
             case SETTINGS: {
                 Rectangle target = {77, 62, 500, 300};
-                floating_window(target, true);
+                floating_window(target, true, 4);
                 std::string title = "SETTINGS";
+                static bool toggled = false; 
                 DrawTextPro(Lato, title.c_str(), {target.x + 200, target.y + 5}, {0, 0}, 0, 24, 2.0f, WHITE);
-                
+                switch(st_menu){
+                    case 1: {
+                        toggle({target.x + 12, target.y + 100}, sfx_enabled, "SFX");
+                        toggle({target.x + 12, target.y + 125}, music_enabled, "MUSIC");
+                        break;
+                        
+                    }
+                    case 3: {
+                        toggle({target.x + 12, target.y + 100}, admin, "Admin");
+                    }
+                }
+                    
             }
         
         }
