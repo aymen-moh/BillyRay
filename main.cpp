@@ -13,6 +13,7 @@ Font Lato;
 bool music_enabled = true;
 bool sfx_enabled = true;
 bool admin = false; 
+Color LIGHTBLUE = {0, 255, 255, 255};
 
 int st_menu = 1;
 struct SawBlade {
@@ -74,6 +75,10 @@ Texture2D checkbox;
 Texture2D checkbox_hovered;
 Texture2D checkbox_toggled_hovered;
 Texture2D checkbox_toggled;
+Texture2D knob_hovered;
+Texture2D knob;
+Texture2D slider_bar;
+Texture2D slider_bar_side; // idk if i can flip it
 GameStates gameState;
 int level = 0;
 bool onetimeloop = true;
@@ -87,23 +92,34 @@ void toggle(Vector2 position, bool& toggled, std::string toggle_text){
     Rectangle TEXTURE8X8 = {0, 0, 8, 8};
     bool hovered = CheckCollisionPointRec(GetMousePosition(), toggle_rec);
     DrawTexturePro(hovered ? toggled ? checkbox_toggled_hovered : checkbox_hovered : toggled ? checkbox_toggled : checkbox, TEXTURE8X8, toggle_rec, {0, 0}, 0, WHITE);
-    if(hovered and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+    if(hovered and IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
         toggled = !toggled;
     }
     DrawText(toggle_text.c_str(), position.x + 25, position.y + 1, 16, WHITE);
     }
 
-void slider
+void slider(Vector2 position, int length, int& value){
+    
+    static Vector2 knob_pos = {position.x + value, position.y};
+    static Rectangle src = {0, 0, 8, 8};
+    Rectangle dst = {knob_pos.x, knob_pos.y, 16, 16};
+    if(!(knob_pos.x > position.x + length) and !(knob_pos.x < position.x) and IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
+        knob_pos.x = GetMousePosition().x;
+    }
+    bool hovered = CheckCollisionPointRec(GetMousePosition(), dst);
+    DrawTexturePro(knob, src, dst, {0, 0}, 0, hovered ? BLUE : GRAY);
+
+}
 
 void floating_window(Rectangle window_rect, bool line = false, int sections = 0){
-    
+
     DrawRectangleRec(window_rect, WHITE);
     Rectangle dest_rec = {window_rect.x + window_rect.width - 25, window_rect.y + 10.0f, 16.0f, 16.0f};
     Rectangle src_rec = {0, 0, 16, 16};
     DrawRectangleV({window_rect.x + 2.0f, window_rect.y + 2.0f}, {window_rect.width - 4.0f, window_rect.height - 4.0f}, BLACK);
     bool colliding = CheckCollisionPointRec(GetMousePosition(), dest_rec);
     DrawTexturePro(colliding ? cross_button_hovered : cross_button, src_rec, dest_rec, {0.0f, 0.0f}, 0, WHITE);
-    if(colliding and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) gameState = MENU; // i will set this later to be LAST_GAMESTATE
+    if(colliding and IsMouseButtonDown(MOUSE_BUTTON_LEFT)) gameState = MENU; // i will set this later to be LAST_GAMESTATE
     if (sections > 0){
         double fontsize = 18.0;
         std::string section1 = "Audio";
@@ -373,6 +389,9 @@ int main(int argc, char* argv[]) {
               shrinking_potion = LoadTexture("Assets/Textures/potion_bottle_absorption.png");
               cross_button = LoadTexture("Assets/Textures/gui/cross_button.png");
               cross_button_hovered = LoadTexture("Assets/Textures/gui/cross_button_hovered.png");
+              knob = LoadTexture("Assets/Textures/gui/slider_ring_hovered.png");
+              slider_bar = LoadTexture("Assets/Textures/gui/slider_background_middle.png");
+              slider_bar_side = LoadTexture("Assets/Textures/gui/slider_background_right.png");
 
     Image window_icon = LoadImage("Assets/Textures/icon.png");
 
@@ -582,11 +601,13 @@ int main(int argc, char* argv[]) {
                 floating_window(target, true, 4);
                 std::string title = "SETTINGS";
                 static bool toggled = false; 
+                static int test = 30;
                 DrawTextPro(Lato, title.c_str(), {target.x + 200, target.y + 5}, {0, 0}, 0, 24, 2.0f, WHITE);
                 switch(st_menu){
                     case 1: {
                         toggle({target.x + 12, target.y + 100}, sfx_enabled, "SFX");
                         toggle({target.x + 12, target.y + 125}, music_enabled, "MUSIC");
+                        slider({target.x + 12, target.y + 150}, 30, test);
                         break;
                         
                     }
