@@ -102,11 +102,20 @@ void slider(Vector2 position, int length, int& value){
     
     static Vector2 knob_pos = {position.x + value, position.y};
     static Rectangle src = {0, 0, 8, 8};
+    static bool drag = false;
     Rectangle dst = {knob_pos.x, knob_pos.y, 16, 16};
-    if(!(knob_pos.x > position.x + length) and !(knob_pos.x < position.x) and IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
-        knob_pos.x = GetMousePosition().x;
+    Vector2 md = GetMouseDelta();
+    Vector2 mp = GetMousePosition();
+    bool hovered = CheckCollisionPointRec(mp, dst);
+    if(hovered and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) drag = true;
+    if(!IsMouseButtonDown(MOUSE_BUTTON_LEFT)) drag = false;
+    if(drag){
+        knob_pos.x += md.x;
+        knob_pos.x = Clamp(knob_pos.x, position.x, position.x + length);
+        value = knob_pos.x - position.x;
+
     }
-    bool hovered = CheckCollisionPointRec(GetMousePosition(), dst);
+    
     DrawTexturePro(knob, src, dst, {0, 0}, 0, hovered ? BLUE : GRAY);
 
 }
@@ -274,7 +283,7 @@ void play_level(
             target = saw.sb_pos_a;
         }
         saw.sb_pos_current = Vector2MoveTowards(saw.sb_pos_current, target, saw.sb_speed * dt);
-        if(Vector2Distance(saw.sb_pos_current, target) < 1.0f){ // needed some help from our friend gemini here, it gave me the idea of using vector2move and vector2distance
+        if(Vector2Distance(saw.sb_pos_current,target) < 1.0f){ // needed some help from our friend gemini here, it gave me the idea of using vector2move and vector2distance
             saw.sb_direction = !saw.sb_direction;
         }
         if(CheckCollisionCircleRec(saw.sb_pos_current, saw.sb_radius, player.player)){
@@ -607,7 +616,8 @@ int main(int argc, char* argv[]) {
                     case 1: {
                         toggle({target.x + 12, target.y + 100}, sfx_enabled, "SFX");
                         toggle({target.x + 12, target.y + 125}, music_enabled, "MUSIC");
-                        slider({target.x + 12, target.y + 150}, 30, test);
+                        slider({target.x + 12, target.y + 150}, 100, test);
+                        DrawText(std::to_string(test).c_str(), target.x + 12, target.y + 150, 24, WHITE);
                         break;
                         
                     }
