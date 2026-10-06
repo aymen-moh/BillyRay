@@ -96,7 +96,7 @@ void toggle(Vector2 position, bool& toggled, std::string toggle_text){
         toggled = !toggled;
     }
     DrawText(toggle_text.c_str(), position.x + 25, position.y + 1, 16, WHITE);
-    }
+}
 
 void slider(Vector2 position, int length, int& value){
     
@@ -115,8 +115,10 @@ void slider(Vector2 position, int length, int& value){
         value = knob_pos.x - position.x;
 
     }
-    
-    DrawTexturePro(knob, src, dst, {0, 0}, 0, hovered ? BLUE : GRAY);
+    DrawTexturePro(slider_bar_side, {0, 0, -8, 8}, {position.x + 5, position.y + 4, 8, 8}, {0, 0}, 0, WHITE);
+    DrawTexturePro(slider_bar_side, src, {position.x + length + 5, position.y + 4, 8, 8}, {0, 0}, 0, WHITE);
+    DrawTexturePro(slider_bar, src, {position.x + 12, position.y + 4, length - 6, 8}, {0, 0}, 0, WHITE);
+    DrawTexturePro(knob, src, dst, {0, 0}, 0, drag ? BLUE : GRAY);
 
 }
 
@@ -617,7 +619,6 @@ int main(int argc, char* argv[]) {
                         toggle({target.x + 12, target.y + 100}, sfx_enabled, "SFX");
                         toggle({target.x + 12, target.y + 125}, music_enabled, "MUSIC");
                         slider({target.x + 12, target.y + 150}, 100, test);
-                        DrawText(std::to_string(test).c_str(), target.x + 12, target.y + 150, 24, WHITE);
                         break;
                         
                     }
