@@ -13,7 +13,7 @@ bool sfx_enabled = true;
 bool admin = false; 
 float sfx_volume = 1.0f;
 Color LIGHTBLUE = {0, 255, 255, 255};
-
+bool rst_notf_sd = false;
 int st_menu = 1;
 struct SawBlade {
     Vector2 sb_position;
@@ -104,7 +104,7 @@ void toggle(Vector2 position, bool& toggled, std::string toggle_text){
 
 void slider(Vector2 position, int length, float& value, bool locked, float devide_value_by){
     
-    static Vector2 knob_pos = {position.x + value * devide_value_by, position.y};
+    Vector2 knob_pos = {position.x + value * devide_value_by, position.y};
     static Rectangle src = {0, 0, 8, 8};
     static bool drag = false;
     Rectangle dst = {knob_pos.x, knob_pos.y, 16, 16};
@@ -138,19 +138,21 @@ void slider_toggle(
     bool lock_if_set_to_0_and_untoggled = false,
     bool untoggle_if_set_to_0 = false
 ){
+    float slider_x = position.x + 25 + MeasureText(toggle_text.c_str(), 16) + 15;
     toggle(position, toggled, toggle_text);
+    if(set_to_zero_if_untoggled and !toggled){
+        value = 0.0;
+        slider({slider_x, position.y}, length, value, true, dvb);
+    }
     if(disappear_if_untoggled and !toggled){
     }
     else if (lock_if_untoggled and !toggled){
-        slider({MeasureTextEx(GetFontDefault(), toggle_text.c_str(), 24, 2.0f).x + 20, position.y}, length, value, true, dvb);
+        slider({slider_x, position.y}, length, value, true, dvb);
     }
     else if (toggled){
-        slider({MeasureTextEx(GetFontDefault(), toggle_text.c_str(), 24, 2.0f).x + 20, position.y}, length, value, false, dvb);
+        slider({slider_x, position.y}, length, value, false, dvb);
     }
-    else if(set_to_zero_if_untoggled and !toggled){
-        value = 0;
-        slider({MeasureTextEx(GetFontDefault(), toggle_text.c_str(), 24, 2.0f).x + 20, position.y}, length, value, true, dvb);
-    }
+    
     
 
 
@@ -165,7 +167,7 @@ void floating_window(Rectangle window_rect, bool line = false, int sections = 0)
     DrawTexturePro(colliding ? cross_button_hovered : cross_button, src_rec, dest_rec, {0.0f, 0.0f}, 0, WHITE);
     if(colliding and IsMouseButtonDown(MOUSE_BUTTON_LEFT)) gameState = MENU; // i will set this later to be LAST_GAMESTATE
     if (sections > 0){
-        double fontsize = 18.0;
+        double fontsize = 18.0; 
         std::string section1 = "Audio";
         Vector2 sec1_size = MeasureTextEx(GetFontDefault(), section1.c_str(), 24, 2.0f);
         Rectangle sections_button_rect = {window_rect.x + 20, window_rect.y + 50, sec1_size.x, sec1_size.y};
@@ -195,7 +197,7 @@ void floating_window(Rectangle window_rect, bool line = false, int sections = 0)
 
 }
 
-void push_notification(std::string text, float duration, int pos_change, float anim_speed){
+void push_notification(std::string text, float duration, int pos_change, float anim_speed, bool reset){
     float init_current_y = -30.0f;
     static Vector2 current = {320.0f, init_current_y};
     static float time_spent = 0.0f;
@@ -203,9 +205,18 @@ void push_notification(std::string text, float duration, int pos_change, float a
     static bool bool1 = true;
     static bool bool2 = true;
     static bool play_start_animation = true;
+    if(reset){
+        Vector2 current = {320.0f, init_current_y};
+        float time_spent = 0.0f;
+        bool play_end_animation = false;
+        bool bool1 = true;
+        bool bool2 = true;
+        bool play_start_animation = true;
+    }
     float dt = GetFrameTime();
     if(play_start_animation){
         if (bool1){
+            bool1 = false;
             if (!IsSoundPlaying(sfx.notification_sound)) PlaySound(sfx.notification_sound);
 
         }
@@ -227,11 +238,9 @@ void push_notification(std::string text, float duration, int pos_change, float a
     if(play_end_animation){
         if (bool2){
             if(!IsSoundPlaying(sfx.notification_sound_out)) PlaySound(sfx.notification_sound_out);
+            bool2 = false;
         }
-        if(!IsSoundPlaying(sfx.notification_sound_out)){
-            bool2 = true;
-            bool1 = true;
-        }
+        
         if (current.y > init_current_y) current.y -= anim_speed;
     }
     DrawText(text.c_str(), current.x, current.y, 24, WHITE);
@@ -286,7 +295,7 @@ void play_level(
         player.p_width = 29.0f;
         player.position = spawn_point;
         for (auto& saw : movingsawblades) saw.sb_pos_current = saw.sb_pos_a;
-
+        rst_notf_sd = true;
     }
     onetimeloop = false;
     
@@ -359,13 +368,12 @@ void play_level(
     DrawFPS(50, 10);
     DrawRectangleRec(win, GREEN);
     if(CheckCollisionRecs(player.player, win)) gameState = WIN_SCREEN;
-    push_notification("hi hru", 2.0f, 100.0f, 2.0f);
+    push_notification("hi hru", 2.0f, 100.0f, 2.0f, rst_notf_sd);
     DrawTexturePro(shrinking_potion, {0, 0, 16, 16}, shrink_potion, {0, 0}, 0, LIME);
     
 }
  
 int main(int argc, char* argv[]) {
-    SFX sfx;
 
     
     
@@ -457,7 +465,7 @@ int main(int argc, char* argv[]) {
     bool win_sound_played = false;
     bool win_screen_loaded = true;
     bool QUITCONFIRMED = false;
-    Font Lato = LoadFontEx("Assets/Fonts/Lato/Lato-Regular.ttf", 30, 0, 0);
+    Lato = LoadFontEx("Assets/Fonts/Lato/Lato-Regular.ttf", 30, 0, 0);
 
     while(WindowShouldClose() == false and !QUITCONFIRMED){
 
@@ -667,9 +675,8 @@ int main(int argc, char* argv[]) {
                     case 1: {
                         toggle({target.x + 12, target.y + 100}, sfx_enabled, "SFX");
                         toggle({target.x + 12, target.y + 125}, music_enabled, "MUSIC");
-                        slider_toggle({target.x + 12, target.y + 125}, sfx_enabled, "SFX", sfx_volume, 100, 100.0f, false, true, true, true, false);
-                        DrawText(std::to_string(sfx_volume).c_str(), 50, 190, 24, WHITE);
-                        ClearBackground(BLACK);
+                        slider_toggle({target.x + 12, target.y + 150}, sfx_enabled, "SFiugguiguigvhgghghjkgghX", sfx_volume, 100, 100.0f, false, true, true, true, false);
+                        
                         break;
                         
                     }
