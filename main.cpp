@@ -138,20 +138,24 @@ void slider_toggle(
     bool lock_if_set_to_0_and_untoggled = false,
     bool untoggle_if_set_to_0 = false
 ){
+    float last_value = value;
     float slider_x = position.x + 25 + MeasureText(toggle_text.c_str(), 16) + 15;
     toggle(position, toggled, toggle_text);
     if(set_to_zero_if_untoggled and !toggled){
         value = 0.0;
         slider({slider_x, position.y}, length, value, true, dvb);
     }
+    else if (set_to_zero_if_untoggled and toggled){
+        value = last_value;
+        slider({slider_x, position.y}, length, value, false, dvb);
+    }
     if(disappear_if_untoggled and !toggled){
     }
     else if (lock_if_untoggled and !toggled){
         slider({slider_x, position.y}, length, value, true, dvb);
     }
-    else if (toggled){
-        slider({slider_x, position.y}, length, value, false, dvb);
-    }
+
+    
     
     
 
@@ -281,7 +285,7 @@ void play_level(
     Rectangle& shrink_potion = default_potion
     
 ){
-    static Rectangle org_shrink = shrink_potion;
+    Rectangle org_shrink = shrink_potion;
     static bool shrunk = false;
     static bool shrinking_sound = true;
     static bool disappear = false;
@@ -394,11 +398,11 @@ int main(int argc, char* argv[]) {
     Rectangle menu_button_rect2 = {192.0, 256.0, 64.0f, 64.0f};
     Rectangle restart_button_rect2 = {288.0, 256.0, 64.0f, 64.0f};
     Rectangle next_level_button_rect2 = {384.0, 256.0, 64.0f, 64.0f};
+    Rectangle resume_button_rect2 = {384.0, 256.0, 64.0f, 64.0f};
     Rectangle play_button_rect = {32.0, 160.0, 96.0f, 32.0f};
     Rectangle settings_button_rect = {32.0, 208.0, 96.0f, 32.0f};
-    Rectangle quit_button_rect = {32.0, 256.0, 96.0f, 32.0f};
-    Rectangle resume_button_rect2 = {384.0, 256.0, 64.0f, 64.0f};
-    
+    Rectangle shop_button_rect = {32.0, 256.0, 96.0f, 32.0f}; 
+    Rectangle quit_button_rect = {32.0, 304.0, 96.0f, 32.0f}; 
 
  
     int width = 640;
@@ -438,6 +442,8 @@ int main(int argc, char* argv[]) {
     Texture2D quit_button = LoadTexture("Assets/Textures/gui/quit_button.png");
     Texture2D quit_button_hovered = LoadTexture("Assets/Textures/gui/quit_button_hovered.png");
     Texture2D locked_level_icon = LoadTexture("Assets/Textures/gui/locked_level.png");
+    Texture2D shop_button = LoadTexture("Assets/Textures/gui/shop_button.png");
+    Texture2D shop_button_hovered = LoadTexture("Assets/Textures/gui/shop_button_hovered.png");
               checkbox = LoadTexture("Assets/Textures/gui/checkbox.png");
               checkbox_hovered = LoadTexture("Assets/Textures/gui/checkbox_hovered.png");
               checkbox_toggled = LoadTexture("Assets/Textures/gui/checkbox_checked.png");
@@ -618,6 +624,8 @@ int main(int argc, char* argv[]) {
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, settings_button_rect)) gameState = SETTINGS;
                 DrawTexturePro(CheckCollisionPointRec(mouse_pos, quit_button_rect) ? quit_button_hovered : quit_button, A_128_64Texture_source, quit_button_rect, {0, 0}, 0, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, quit_button_rect)) gameState = QUIT;
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, shop_button_rect) ? shop_button_hovered : shop_button, A_128_64Texture_source, shop_button_rect, {0, 0}, 0, WHITE);
+                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, shop_button_rect)) gameState = SHOPMENU;
                 break;
             }
             case QUIT: {
@@ -686,6 +694,9 @@ int main(int argc, char* argv[]) {
                     }
                 }
                     
+            }
+            case SHOPMENU: {
+                
             }
         
         }
