@@ -6,13 +6,12 @@
 #include "levels.h"
 
 
-Sound notification_sound;
-Sound notification_sound_out;
-Sound power_up;
+
 Font Lato;
 bool music_enabled = true;
 bool sfx_enabled = true;
 bool admin = false; 
+float sfx_volume = 1.0f;
 Color LIGHTBLUE = {0, 255, 255, 255};
 
 int st_menu = 1;
@@ -62,10 +61,15 @@ struct WinBlocks {
 
 
 struct SFX {
+
     Sound failsound;
     Sound win_sound;
+    Sound notification_sound;
+    Sound notification_sound_out;
+    Sound power_up;
 };
 
+SFX sfx;
 Texture2D cross_button;
 Texture2D cross_button_hovered;
 Texture2D shrinking_potion;
@@ -92,15 +96,15 @@ void toggle(Vector2 position, bool& toggled, std::string toggle_text){
     Rectangle TEXTURE8X8 = {0, 0, 8, 8};
     bool hovered = CheckCollisionPointRec(GetMousePosition(), toggle_rec);
     DrawTexturePro(hovered ? toggled ? checkbox_toggled_hovered : checkbox_hovered : toggled ? checkbox_toggled : checkbox, TEXTURE8X8, toggle_rec, {0, 0}, 0, WHITE);
-    if(hovered and IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+    if(hovered and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
         toggled = !toggled;
     }
     DrawText(toggle_text.c_str(), position.x + 25, position.y + 1, 16, WHITE);
 }
 
-void slider(Vector2 position, int length, int& value){
+void slider(Vector2 position, int length, float& value, bool locked, float devide_value_by){
     
-    static Vector2 knob_pos = {position.x + value, position.y};
+    static Vector2 knob_pos = {position.x + value * devide_value_by, position.y};
     static Rectangle src = {0, 0, 8, 8};
     static bool drag = false;
     Rectangle dst = {knob_pos.x, knob_pos.y, 16, 16};
@@ -109,19 +113,48 @@ void slider(Vector2 position, int length, int& value){
     bool hovered = CheckCollisionPointRec(mp, dst);
     if(hovered and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) drag = true;
     if(!IsMouseButtonDown(MOUSE_BUTTON_LEFT)) drag = false;
-    if(drag){
+    if(drag and !locked){
         knob_pos.x += md.x;
         knob_pos.x = Clamp(knob_pos.x, position.x, position.x + length);
-        value = knob_pos.x - position.x;
+        value = (knob_pos.x - position.x) / devide_value_by;
 
     }
     DrawTexturePro(slider_bar_side, {0, 0, -8, 8}, {position.x + 5, position.y + 4, 8, 8}, {0, 0}, 0, WHITE);
     DrawTexturePro(slider_bar_side, src, {position.x + length + 5, position.y + 4, 8, 8}, {0, 0}, 0, WHITE);
     DrawTexturePro(slider_bar, src, {position.x + 12, position.y + 4, length - 6, 8}, {0, 0}, 0, WHITE);
-    DrawTexturePro(knob, src, dst, {0, 0}, 0, drag ? BLUE : GRAY);
+    DrawTexturePro(knob, src, dst, {0, 0}, 0, locked ? WHITE : drag ? BLUE : GRAY);
 
 }
+void slider_toggle(
+    Vector2 position, 
+    bool& toggled, 
+    std::string toggle_text, 
+    float& value, 
+    int length, 
+    float dvb,
+    bool disappear_if_untoggled = false, 
+    bool lock_if_untoggled = true,
+    bool set_to_zero_if_untoggled = false,
+    bool lock_if_set_to_0_and_untoggled = false,
+    bool untoggle_if_set_to_0 = false
+){
+    toggle(position, toggled, toggle_text);
+    if(disappear_if_untoggled and !toggled){
+    }
+    else if (lock_if_untoggled and !toggled){
+        slider({MeasureTextEx(GetFontDefault(), toggle_text.c_str(), 24, 2.0f).x + 20, position.y}, length, value, true, dvb);
+    }
+    else if (toggled){
+        slider({MeasureTextEx(GetFontDefault(), toggle_text.c_str(), 24, 2.0f).x + 20, position.y}, length, value, false, dvb);
+    }
+    else if(set_to_zero_if_untoggled and !toggled){
+        value = 0;
+        slider({MeasureTextEx(GetFontDefault(), toggle_text.c_str(), 24, 2.0f).x + 20, position.y}, length, value, true, dvb);
+    }
+    
 
+
+}
 void floating_window(Rectangle window_rect, bool line = false, int sections = 0){
 
     DrawRectangleRec(window_rect, WHITE);
@@ -167,14 +200,14 @@ void push_notification(std::string text, float duration, int pos_change, float a
     static Vector2 current = {320.0f, init_current_y};
     static float time_spent = 0.0f;
     static bool play_end_animation = false;
-    static bool bool1 = false;
-    static bool bool2 = false;
+    static bool bool1 = true;
+    static bool bool2 = true;
     static bool play_start_animation = true;
     float dt = GetFrameTime();
     if(play_start_animation){
-        if (!bool1){
-            if (!IsSoundPlaying(notification_sound))PlaySound(notification_sound);
-            bool1 = true;
+        if (bool1){
+            if (!IsSoundPlaying(sfx.notification_sound)) PlaySound(sfx.notification_sound);
+
         }
         if (current.y < init_current_y + pos_change and play_start_animation) {
             current.y += anim_speed;
@@ -192,9 +225,12 @@ void push_notification(std::string text, float duration, int pos_change, float a
         }
     }
     if(play_end_animation){
-        if (!bool2){
+        if (bool2){
+            if(!IsSoundPlaying(sfx.notification_sound_out)) PlaySound(sfx.notification_sound_out);
+        }
+        if(!IsSoundPlaying(sfx.notification_sound_out)){
             bool2 = true;
-            if(!IsSoundPlaying(notification_sound_out)) PlaySound(notification_sound_out);
+            bool1 = true;
         }
         if (current.y > init_current_y) current.y -= anim_speed;
     }
@@ -209,7 +245,7 @@ void shrink(Player& player, double amplifier, bool& play){
     static float org_player_width =  player.p_width;
     if(player.p_height > org_player_height / amplifier) player.p_height -= 0.3f;
     if(player.p_width > org_player_width / amplifier) player.p_width -= 0.3f;
-    if (!IsSoundPlaying(power_up) and !play) PlaySound(power_up);
+    if (!IsSoundPlaying(sfx.power_up) and !play) PlaySound(sfx.power_up);
     play = true;
 
 }
@@ -219,6 +255,8 @@ void disappear(Texture2D disappear, Rectangle& disappearer){
     disappear.width = 0;
     disappearer = {-200, -200, 0, 0};
 }
+
+
 
 
 void play_level(
@@ -362,9 +400,10 @@ int main(int argc, char* argv[]) {
     SetExitKey(KEY_NULL);
     SetTargetFPS(60);
     InitAudioDevice();
-    notification_sound = LoadSound("Assets/audio/sound effects/Toast.ogg");
-    notification_sound_out = LoadSound("Assets/audio/sound effects/Out.ogg");
-    power_up = LoadSound("Assets/audio/sound effects/edr-power-up-01a-484722.mp3");  
+    sfx.notification_sound = LoadSound("Assets/audio/sound effects/Toast.ogg");
+    sfx.notification_sound_out = LoadSound("Assets/audio/sound effects/Out.ogg");
+    sfx.power_up = LoadSound("Assets/audio/sound effects/edr-power-up-01a-484722.mp3"); 
+    sfx.win_sound = LoadSound("Assets/audio/sound effects/mixkit-tile-game-reveal-960.wav"); 
     Player player;
     WinBlocks winblocks;
     player.position = {32.0, 304.0};
@@ -405,8 +444,14 @@ int main(int argc, char* argv[]) {
               slider_bar_side = LoadTexture("Assets/Textures/gui/slider_background_right.png");
 
     Image window_icon = LoadImage("Assets/Textures/icon.png");
+    std::vector<Sound*> all_sfx {
+        &sfx.failsound,
+        &sfx.win_sound,
+        &sfx.notification_sound,
+        &sfx.notification_sound_out,
+        &sfx.power_up
+    };
 
-    sfx.win_sound = LoadSound("Assets/audio/sound effects/mixkit-tile-game-reveal-960.wav");
     ImageFormat(&window_icon, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
     SetWindowIcon(window_icon);
     bool win_sound_played = false;
@@ -415,9 +460,13 @@ int main(int argc, char* argv[]) {
     Font Lato = LoadFontEx("Assets/Fonts/Lato/Lato-Regular.ttf", 30, 0, 0);
 
     while(WindowShouldClose() == false and !QUITCONFIRMED){
+
         BeginDrawing();
         Vector2 mouse_pos = GetMousePosition();
         Rectangle p_rect = {player.position.x, player.position.y, player.p_width, player.p_height};
+        for(auto& sound_effect : all_sfx){
+            SetSoundVolume(*sound_effect, sfx_volume);
+        }
         switch(gameState){
             case GAME: {
 
@@ -618,11 +667,14 @@ int main(int argc, char* argv[]) {
                     case 1: {
                         toggle({target.x + 12, target.y + 100}, sfx_enabled, "SFX");
                         toggle({target.x + 12, target.y + 125}, music_enabled, "MUSIC");
-                        slider({target.x + 12, target.y + 150}, 100, test);
+                        slider_toggle({target.x + 12, target.y + 125}, sfx_enabled, "SFX", sfx_volume, 100, 100.0f, false, true, true, true, false);
+                        DrawText(std::to_string(sfx_volume).c_str(), 50, 190, 24, WHITE);
+                        ClearBackground(BLACK);
                         break;
                         
                     }
                     case 3: {
+                        
                         toggle({target.x + 12, target.y + 100}, admin, "Admin");
                     }
                 }
@@ -658,8 +710,8 @@ int main(int argc, char* argv[]) {
     UnloadTexture(player_sprite);
     UnloadSound(sfx.failsound);
     UnloadSound(sfx.win_sound);
-    UnloadSound(notification_sound);
-    UnloadSound(notification_sound_out);
+    UnloadSound(sfx.notification_sound);
+    UnloadSound(sfx.notification_sound_out);
     CloseAudioDevice();
     CloseWindow();
 
