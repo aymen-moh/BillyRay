@@ -207,4 +207,12 @@ std::vector<LevelGrid> level_grid {
         { {544.0, 320.0}, {32.0f, 32.0f}, true, 55 }
     };
 
+std::vector<PlayerIconShopItem> player_icons{
+    {"Billy", 0, true, player_icon},
+    {"Don", 100, false, player_icon2}
+};
 
+
+
+Texture2D player_icon;
+Texture2D player_icon2;

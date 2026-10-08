@@ -27,8 +27,15 @@ struct LevelGrid {
     int lvl_id;
 
 };
+struct PlayerIconShopItem {
+    std::string name;
+    int price;
+    bool unlocked;
+    Texture2D icon;
+};
 
-
+extern Texture2D player_icon;
+extern Texture2D player_icon2;
 
 
 
@@ -44,5 +51,5 @@ extern Rectangle lvl4_potion;
 extern std::vector<MovingSawblade> lvl5_sawblades;
 extern std::vector<Block> lvl5_blocks;
 extern std::vector<LevelGrid> level_grid;
-
+extern std::vector<PlayerIconShopItem> player_icons;
 extern std::string death_mesagges[10];

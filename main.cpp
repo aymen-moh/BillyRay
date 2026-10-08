@@ -15,6 +15,7 @@ float sfx_volume = 1.0f;
 Color LIGHTBLUE = {0, 255, 255, 255};
 bool rst_notf_sd = false;
 int st_menu = 1;
+int selected_player= 1;
 struct SawBlade {
     Vector2 sb_position;
     float radius;
@@ -368,7 +369,7 @@ void play_level(
         
 
     
-    DrawTexturePro(player_icon, {0, 0, 32, 32}, player.player, {0, 0}, 0, WHITE);
+    DrawTexturePro(player_icon, {0, 0, 16, 16}, player.player, {0, 0}, 0, WHITE);
     DrawFPS(50, 10);
     DrawRectangleRec(win, GREEN);
     if(CheckCollisionRecs(player.player, win)) gameState = WIN_SCREEN;
@@ -427,7 +428,6 @@ int main(int argc, char* argv[]) {
     Texture2D sawblade = LoadTexture("Assets/Textures/sawblade.png");
     Texture2D resume_button = LoadTexture("Assets/Textures/gui/resume_button.png");
     Texture2D resume_button_hovered = LoadTexture("Assets/Textures/gui/resume_button_hovered.png");
-    Texture2D player_sprite = LoadTexture("Assets/Textures/Icon.png");
     Texture2D bg_lvl1 = LoadTexture("Assets/Textures/background.png");
     Texture2D menu_button = LoadTexture("Assets/Textures/gui/menu_button.png");
     Texture2D menu_button_hovered = LoadTexture("Assets/Textures/gui/menu_button_hovered.png");
@@ -444,6 +444,8 @@ int main(int argc, char* argv[]) {
     Texture2D locked_level_icon = LoadTexture("Assets/Textures/gui/locked_level.png");
     Texture2D shop_button = LoadTexture("Assets/Textures/gui/shop_button.png");
     Texture2D shop_button_hovered = LoadTexture("Assets/Textures/gui/shop_button_hovered.png");
+              player_icons[0].icon = LoadTexture("Assets/Textures/Icon.png");
+              player_icons[1].icon = LoadTexture("Assets/Textures/Icon2.png");
               checkbox = LoadTexture("Assets/Textures/gui/checkbox.png");
               checkbox_hovered = LoadTexture("Assets/Textures/gui/checkbox_hovered.png");
               checkbox_toggled = LoadTexture("Assets/Textures/gui/checkbox_checked.png");
@@ -491,7 +493,7 @@ int main(int argc, char* argv[]) {
                             lvl1_sawblades,
                             lvl1_blocks,
                             {512.0f, 32.0f, 32.0f, 32.0f},
-                            player_sprite,
+                            player_icons[selected_player].icon,
                             bg_lvl1,
                             sfx,
                             {96.0, 320.0},
@@ -508,7 +510,7 @@ int main(int argc, char* argv[]) {
                             lvl2_sawblades,
                             lvl2_blocks,
                             {560.0, 336.0, 32.0f, 32.0f},
-                            player_sprite,
+                            player_icons[selected_player].icon,
                             bg_lvl1,
                             sfx,
                             {48.0, 336.0},
@@ -522,7 +524,7 @@ int main(int argc, char* argv[]) {
                             lvl3_sawblades,
                             lvl3_blocks,
                             {48.0, 320.0, 32.0f, 32.0f},
-                            player_sprite,
+                            player_icons[selected_player].icon,
                             bg_lvl1,
                             sfx,
                             {48.0, 160.0},
@@ -537,7 +539,7 @@ int main(int argc, char* argv[]) {
                             lvl4_sawblades,
                             lvl4_blocks,
                             {560.0, 192.0, 32.0f, 32.0f},
-                            player_sprite,
+                            player_icons[selected_player].icon,
                             bg_lvl1,
                             sfx,
                             {32.0, 192.0},
@@ -553,7 +555,7 @@ int main(int argc, char* argv[]) {
                             lvl5_sawblades,
                             lvl5_blocks,
                             {48.0, 48.0, 32.0f, 32.0f},
-                            player_sprite,
+                            player_icons[selected_player].icon,
                             bg_lvl1,
                             sfx,
                             {48.0, 336.0},
@@ -693,10 +695,31 @@ int main(int argc, char* argv[]) {
                         toggle({target.x + 12, target.y + 100}, admin, "Admin");
                     }
                 }
+                break;
                     
             }
             case SHOPMENU: {
-                
+                ClearBackground(ORANGE);
+                static Rectangle rect  = {30, 66, 100, 100};
+                DrawLine(320, 0, 320, 416, WHITE);
+                /////////////////////////////////f
+                for(auto& icon : player_icons){
+                    static Rectangle player_icon_plate = {33, 66, 70, 70};
+                    
+                    bool hovered = (CheckCollisionPointRec(mouse_pos, player_icon_plate));
+                    DrawTexturePro(hovered ? plate_button_hovered : plate_button, A_32x32_texure_source, player_icon_plate, {0, 0}, 0, icon.unlocked ? GREEN : RED);
+                    DrawTexturePro(icon.icon, {0, 0, 16, 16}, {player_icon_plate.x + 10, player_icon_plate.y + 10, 48, 48}, {0, 0}, 0, WHITE);
+                    ;
+                }
+                /////////////////////////////////
+                DrawLine(320, 0, 320, 416, WHITE);
+                DrawRectangle(0, 0, 650, 36, BLACK);
+                DrawRectangle(0, 394, 640, 50, BLACK);
+                DrawLine(0, 36, 640, 36, WHITE);
+                DrawLine(0, 394, 640, 394, WHITE);
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, {5, 5, 24, 24}) ? resume_button_hovered : resume_button, {0, 0, -32, 32}, {5, 5, 24, 24}, {0, 0}, 0, WHITE);
+                if(CheckCollisionPointRec(mouse_pos, {15, 5, 24, 24}) and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) gameState = MENU;
+                break;
             }
         
         }
@@ -725,7 +748,7 @@ int main(int argc, char* argv[]) {
 
     UnloadTexture(bg_lvl1);
     UnloadImage(window_icon); 
-    UnloadTexture(player_sprite);
+    UnloadTexture(player_icon);
     UnloadSound(sfx.failsound);
     UnloadSound(sfx.win_sound);
     UnloadSound(sfx.notification_sound);
