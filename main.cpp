@@ -6,7 +6,7 @@
 #include "levels.h"
 
 
-
+int balance = 120;
 Font Lato;
 bool music_enabled = true;
 bool sfx_enabled = true;
@@ -15,7 +15,7 @@ float sfx_volume = 1.0f;
 Color LIGHTBLUE = {0, 255, 255, 255};
 bool rst_notf_sd = false;
 int st_menu = 1;
-int selected_player= 1;
+int selected_player= 2;
 struct SawBlade {
     Vector2 sb_position;
     float radius;
@@ -27,7 +27,6 @@ struct Player {
     float p_height = 29.0f;
     float speed = 120.0f;
     Rectangle player = {position.x, position.y, p_width, p_height};
-
 };
 
 struct spear {
@@ -84,6 +83,8 @@ Texture2D knob_hovered;
 Texture2D knob;
 Texture2D slider_bar;
 Texture2D slider_bar_side; // idk if i can flip it
+Texture2D coin;
+
 GameStates gameState;
 int level = 0;
 bool onetimeloop = true;
@@ -201,6 +202,15 @@ void floating_window(Rectangle window_rect, bool line = false, int sections = 0)
     
 
 }
+void draw_currency(Vector2 position = {560, 7}){
+    int fontssize = 16;
+    std::string balance_str = std::to_string(balance);
+    Vector2 balance_width = {MeasureTextEx(GetFontDefault(), balance_str.c_str(), 18, 2.0f).x + 26, MeasureTextEx(GetFontDefault(), balance_str.c_str(), 18, 2.0f).y + 5};
+    DrawRectangle(position.x, position.y, balance_width.x, balance_width.y, WHITE);
+    DrawRectangle(position.x + 1, position.y + 1, balance_width.x - 2, balance_width.y - 2, BLACK);
+    DrawTexturePro(coin, {0, 0, 8, 8}, {position.x + 4, position.y + 4, balance_width.y - 8, balance_width.y - 8}, {0, 0}, 0, WHITE);
+    DrawText(balance_str.c_str(), position.x + 24, position.y + 4, fontssize, GOLD);
+}
 
 void push_notification(std::string text, float duration, int pos_change, float anim_speed, bool reset){
     float init_current_y = -30.0f;
@@ -286,7 +296,7 @@ void play_level(
     Rectangle& shrink_potion = default_potion
     
 ){
-    Rectangle org_shrink = shrink_potion;
+    static Rectangle org_shrink = shrink_potion;    
     static bool shrunk = false;
     static bool shrinking_sound = true;
     static bool disappear = false;
@@ -302,6 +312,7 @@ void play_level(
         for (auto& saw : movingsawblades) saw.sb_pos_current = saw.sb_pos_a;
         rst_notf_sd = true;
     }
+
     onetimeloop = false;
     
     player.player.x = player.position.x;
@@ -326,6 +337,7 @@ void play_level(
             break;
         }
     }
+
     if(!collision) player.position = next_pos;
     for(auto& saw : movingsawblades){
         (saw.rotation >= 360) ?  saw.rotation = 0 : saw.rotation += 360 * dt;
@@ -444,8 +456,11 @@ int main(int argc, char* argv[]) {
     Texture2D locked_level_icon = LoadTexture("Assets/Textures/gui/locked_level.png");
     Texture2D shop_button = LoadTexture("Assets/Textures/gui/shop_button.png");
     Texture2D shop_button_hovered = LoadTexture("Assets/Textures/gui/shop_button_hovered.png");
+              coin = LoadTexture("Assets/Textures/gui/coin.png");
               player_icons[0].icon = LoadTexture("Assets/Textures/Icon.png");
               player_icons[1].icon = LoadTexture("Assets/Textures/Icon2.png");
+              player_icons[2].icon = LoadTexture("Assets/Textures/Icon3.png");
+              player_icons[3].icon = LoadTexture("Assets/Textures/Icon4.png");
               checkbox = LoadTexture("Assets/Textures/gui/checkbox.png");
               checkbox_hovered = LoadTexture("Assets/Textures/gui/checkbox_hovered.png");
               checkbox_toggled = LoadTexture("Assets/Textures/gui/checkbox_checked.png");
@@ -567,6 +582,7 @@ int main(int argc, char* argv[]) {
                 break;
             }
             case WIN_SCREEN: {
+                static int coin_bonus = 0;
                 DrawRectangle(0, 0, 640.0f, 416.0f, BLACK);
                 
                 if (win_sound_played == false){
@@ -576,7 +592,12 @@ int main(int argc, char* argv[]) {
                 int i = level - 1;
                 if (level == max_unlocked_level){
                     level_grid[level].locked = false;
+                    coin_bonus = 100;
+                    balance += coin_bonus;
                     max_unlocked_level++;
+                }
+                else {
+                    coin_bonus = 0;
                 }
                 DrawTexturePro(CheckCollisionPointRec(mouse_pos, menu_button_rect2) ? menu_button_hovered : menu_button, A_32x32_texure_source, menu_button_rect2, {0, 0}, 0, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, menu_button_rect2)) gameState = MENU;
@@ -588,6 +609,7 @@ int main(int argc, char* argv[]) {
                     gameState = GAME;
                     level++;
                 }
+
                 
 
                 
@@ -699,17 +721,17 @@ int main(int argc, char* argv[]) {
                     
             }
             case SHOPMENU: {
-                ClearBackground(ORANGE);
+                ClearBackground(BLACK);
                 static Rectangle rect  = {30, 66, 100, 100};
                 DrawLine(320, 0, 320, 416, WHITE);
-                /////////////////////////////////f
+                /////////////////////////////////
                 for(auto& icon : player_icons){
-                    static Rectangle player_icon_plate = {33, 66, 70, 70};
+
+                    bool hovered = (CheckCollisionPointRec(mouse_pos, icon.rect));
+                    DrawTexturePro(hovered ? plate_button_hovered : plate_button, A_32x32_texure_source, icon.rect, {0, 0}, 0, icon.unlocked ? GREEN : RED);
+                    DrawTexturePro(icon.icon, {0, 0, 16, 16}, {icon.rect.x + 10, icon.rect.y + 10, 48, 48}, {0, 0}, 0, WHITE);
                     
-                    bool hovered = (CheckCollisionPointRec(mouse_pos, player_icon_plate));
-                    DrawTexturePro(hovered ? plate_button_hovered : plate_button, A_32x32_texure_source, player_icon_plate, {0, 0}, 0, icon.unlocked ? GREEN : RED);
-                    DrawTexturePro(icon.icon, {0, 0, 16, 16}, {player_icon_plate.x + 10, player_icon_plate.y + 10, 48, 48}, {0, 0}, 0, WHITE);
-                    ;
+                    
                 }
                 /////////////////////////////////
                 DrawLine(320, 0, 320, 416, WHITE);
@@ -718,7 +740,8 @@ int main(int argc, char* argv[]) {
                 DrawLine(0, 36, 640, 36, WHITE);
                 DrawLine(0, 394, 640, 394, WHITE);
                 DrawTexturePro(CheckCollisionPointRec(mouse_pos, {5, 5, 24, 24}) ? resume_button_hovered : resume_button, {0, 0, -32, 32}, {5, 5, 24, 24}, {0, 0}, 0, WHITE);
-                if(CheckCollisionPointRec(mouse_pos, {15, 5, 24, 24}) and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) gameState = MENU;
+                if(CheckCollisionPointRec(mouse_pos, {5, 5, 24, 24}) and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) gameState = MENU;
+                draw_currency();
                 break;
             }
         

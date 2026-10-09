@@ -208,11 +208,15 @@ std::vector<LevelGrid> level_grid {
     };
 
 std::vector<PlayerIconShopItem> player_icons{
-    {"Billy", 0, true, player_icon},
-    {"Don", 100, false, player_icon2}
-};
+    {{27, 66, 70, 80}, "Billy", 0, true, player_icon},
+    {{127, 66, 70, 80},"Don", 100, false, player_icon2},
+    {{227, 66, 70, 80},"Zombie guy", 100, false, player_icon3},
+    {{27, 170, 70, 80}, "Creepy Johnny", 100, false, player_icon4}
+}; // alright bro i am done with these characters
 
 
 
 Texture2D player_icon;
 Texture2D player_icon2;
+Texture2D player_icon3;
+Texture2D player_icon4;
