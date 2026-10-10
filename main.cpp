@@ -16,6 +16,21 @@ Color LIGHTBLUE = {0, 255, 255, 255};
 bool rst_notf_sd = false;
 int st_menu = 1;
 int selected_player= 2;
+
+bool check_rectangle_equality(Rectangle Rectangle1, Rectangle Rectangle2){
+    bool E_X = false;
+    bool E_Y = false;
+    bool E_WIDTH = false;
+    bool E_HEIGHT = false;
+
+    if (Rectangle1.x == Rectangle2.x) E_X = true;
+    if (Rectangle1.y == Rectangle2.y) E_Y = true;
+    if (Rectangle1.width == Rectangle2.width) E_WIDTH = true;
+    if (Rectangle1.height == Rectangle2.height) E_HEIGHT = true;
+    if (E_X and E_Y and E_HEIGHT and E_WIDTH) return true;
+    else return false;
+}
+
 struct SawBlade {
     Vector2 sb_position;
     float radius;
@@ -293,19 +308,18 @@ void play_level(
     SFX& sfx,
     Vector2 spawn_point,
     Texture2D sawblade,
-    Rectangle& shrink_potion = default_potion
+    Rectangle shrink_potion = default_potion
     
 ){
-    static Rectangle org_shrink = shrink_potion;    
     static bool shrunk = false;
     static bool shrinking_sound = true;
+    static bool potion_collected = false;
+
     static bool disappear = false;
-    
     if(onetimeloop){
-        shrink_potion = org_shrink;
+        potion_collected = false;
         shrinking_sound = false;
         shrunk = false;
-        shrink_potion = org_shrink;
         player.p_height = 29.0f;
         player.p_width = 29.0f;
         player.position = spawn_point;
@@ -325,7 +339,7 @@ void play_level(
     Rectangle b_rect;
     if(IsKeyDown(KEY_W)) next_pos.y -= player.speed *dt;
     if(IsKeyDown(KEY_A)) next_pos.x -= player.speed *dt;
-    if(IsKeyDown(KEY_S)) next_pos.y += player.speed *dt;
+    if(IsKeyDown(KEY_S)) next_pos.y += player.speed *dt;    
     if(IsKeyDown(KEY_D)) next_pos.x += player.speed *dt;
     next_step = {next_pos.x, next_pos.y, player.p_width, player.p_height};
     bool collision = false;
@@ -361,11 +375,6 @@ void play_level(
     if(IsKeyPressed(KEY_ESCAPE)) gameState = PAUSED;
     
 
-    if(CheckCollisionRecs(player.player, shrink_potion)){
-        shrink_potion = {-200, -200, 0, 0};
-        shrunk = true;
-    }
-    if (shrunk) shrink(player, 1.5, shrinking_sound);
     /////////////////////////////////////////////////////////////
     
     DrawTexture(bg, 0, 0, SKYBLUE);
@@ -385,8 +394,18 @@ void play_level(
     DrawFPS(50, 10);
     DrawRectangleRec(win, GREEN);
     if(CheckCollisionRecs(player.player, win)) gameState = WIN_SCREEN;
+    bool level_has_potion = shrink_potion.width > 0 and shrink_potion.height > 0;
+    if(level_has_potion and !potion_collected){
+        if(CheckCollisionRecs(player.player, shrink_potion)){
+            potion_collected = true;
+            shrunk = true;
+        }
+        DrawTexturePro(shrinking_potion, {3, 1, 13, 15}, shrink_potion, {0, 0}, 0, WHITE); ///// GD REFRENCEEEEE
+        
+    }
+    if(shrunk) shrink(player, 1.5, shrinking_sound);
     push_notification("hi hru", 2.0f, 100.0f, 2.0f, rst_notf_sd);
-    DrawTexturePro(shrinking_potion, {0, 0, 16, 16}, shrink_potion, {0, 0}, 0, LIME);
+    
     
 }
  
@@ -395,7 +414,7 @@ int main(int argc, char* argv[]) {
     
     
 
-
+//,
 
     
     std::vector<MovingSawblade> movingsawblades {
@@ -404,7 +423,8 @@ int main(int argc, char* argv[]) {
 
     std::vector<Block> blocks {
         
-    };
+    }; 
+    
     Rectangle A16_Texture_source = {0, 0, 16, 16};
     Rectangle A_32x32_texure_source = {0, 0, 32, 32};
     Rectangle A_128_64Texture_source = {0, 0, 128, 64};
@@ -586,19 +606,20 @@ int main(int argc, char* argv[]) {
                 DrawRectangle(0, 0, 640.0f, 416.0f, BLACK);
                 
                 if (win_sound_played == false){
-                    PlaySound(sfx.win_sound);
+                    PlaySound(sfx.win_sound);    
                     win_sound_played = true;
+                    if (level == max_unlocked_level){
+                        level_grid[level].locked = false;
+                        coin_bonus = 100;
+                        balance += coin_bonus;
+                        max_unlocked_level++;
+                    }
+                    else {
+                        coin_bonus = 0;
+                    }
                 }
-                int i = level - 1;
-                if (level == max_unlocked_level){
-                    level_grid[level].locked = false;
-                    coin_bonus = 100;
-                    balance += coin_bonus;
-                    max_unlocked_level++;
-                }
-                else {
-                    coin_bonus = 0;
-                }
+                
+                
                 DrawTexturePro(CheckCollisionPointRec(mouse_pos, menu_button_rect2) ? menu_button_hovered : menu_button, A_32x32_texure_source, menu_button_rect2, {0, 0}, 0, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, menu_button_rect2)) gameState = MENU;
                 DrawTexturePro(CheckCollisionPointRec(mouse_pos, restart_button_rect2) ? restart_button_hovered : restart_button, A_32x32_texure_source, restart_button_rect2, {0, 0}, 0, WHITE);
@@ -606,6 +627,7 @@ int main(int argc, char* argv[]) {
                 DrawTexturePro(CheckCollisionPointRec(mouse_pos, next_level_button_rect2) ? next_level_button_hovered : next_level_button, A_32x32_texure_source, next_level_button_rect2, {0, 0}, 0, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, next_level_button_rect2)){
                     onetimeloop = true;
+                    win_sound_played = false;
                     gameState = GAME;
                     level++;
                 }
@@ -729,9 +751,17 @@ int main(int argc, char* argv[]) {
 
                     bool hovered = (CheckCollisionPointRec(mouse_pos, icon.rect));
                     DrawTexturePro(hovered ? plate_button_hovered : plate_button, A_32x32_texure_source, icon.rect, {0, 0}, 0, icon.unlocked ? GREEN : RED);
-                    DrawTexturePro(icon.icon, {0, 0, 16, 16}, {icon.rect.x + 10, icon.rect.y + 10, 48, 48}, {0, 0}, 0, WHITE);
-                    
-                    
+                    DrawTexturePro(icon.icon, {0, 0, 16, 16}, {icon.rect.x + 11, icon.rect.y + 9, 48, 48}, {0, 0}, 0, WHITE);
+                    if(!icon.unlocked){
+                        DrawTexturePro(coin, {0, 0, 8, 8}, {icon.rect.x + 10, icon.rect.y + 61, 12, 12}, {0, 0}, 0, WHITE);
+                        DrawText(std::to_string(icon.price).c_str(), icon.rect.x + 24, icon.rect.y + 61, 14, GOLD);
+                    }
+                    else if(icon.unlocked){
+                        if (selected_player = icon.player_id){
+                            std::string selected = "SELECTED";
+                            DrawText(selected.c_str(), icon.rect.x + 24, icon.rect.y + 61, 14, LIGHTGRAY);
+                        }
+                    }
                 }
                 /////////////////////////////////
                 DrawLine(320, 0, 320, 416, WHITE);
@@ -773,7 +803,7 @@ int main(int argc, char* argv[]) {
     UnloadImage(window_icon); 
     UnloadTexture(player_icon);
     UnloadSound(sfx.failsound);
-    UnloadSound(sfx.win_sound);
+    UnloadSound(sfx.win_sound); 
     UnloadSound(sfx.notification_sound);
     UnloadSound(sfx.notification_sound_out);
     CloseAudioDevice();

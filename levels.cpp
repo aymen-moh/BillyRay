@@ -208,10 +208,10 @@ std::vector<LevelGrid> level_grid {
     };
 
 std::vector<PlayerIconShopItem> player_icons{
-    {{27, 66, 70, 80}, "Billy", 0, true, player_icon},
-    {{127, 66, 70, 80},"Don", 100, false, player_icon2},
-    {{227, 66, 70, 80},"Zombie guy", 100, false, player_icon3},
-    {{27, 170, 70, 80}, "Creepy Johnny", 100, false, player_icon4}
+    {{27, 66, 70, 83}, "Billy", 0, true, player_icon, 0},
+    {{127, 66, 70, 83},"Don", 100, false, player_icon2, 1},
+    {{227, 66, 70, 83},"Zombie guy", 100, false, player_icon3, 2},
+    {{27, 170, 70, 83}, "Creepy Johnny", 100, false, player_icon4, 3}
 }; // alright bro i am done with these characters
 
 

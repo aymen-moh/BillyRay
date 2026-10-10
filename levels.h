@@ -33,6 +33,7 @@ struct PlayerIconShopItem {
     int price;
     bool unlocked;
     Texture2D icon;
+    int player_id;
 };
 
 extern Texture2D player_icon;
