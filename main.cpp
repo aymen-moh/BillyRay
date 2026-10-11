@@ -8,6 +8,7 @@
 
 int balance = 120;
 Font Lato;
+Font LatoBold;
 bool music_enabled = true;
 bool sfx_enabled = true;
 bool admin = false; 
@@ -436,7 +437,7 @@ int main(int argc, char* argv[]) {
     }; 
     
     Rectangle A16_Texture_source = {0, 0, 16, 16};
-    Rectangle A_32x32_texure_source = {0, 0, 32, 32};
+    Rectangle x32 = {0, 0, 32, 32};
     Rectangle A_128_64Texture_source = {0, 0, 128, 64};
     Rectangle menu_button_rect2 = {192.0, 256.0, 64.0f, 64.0f};
     Rectangle restart_button_rect2 = {288.0, 256.0, 64.0f, 64.0f};
@@ -519,7 +520,7 @@ int main(int argc, char* argv[]) {
     bool win_screen_loaded = true;
     bool QUITCONFIRMED = false;
     Lato = LoadFontEx("Assets/Fonts/Lato/Lato-Regular.ttf", 30, 0, 0);
-
+    LatoBold = LoadFontEx("Assets/Fonts/Lato/Lato-Bold.ttf", 30, 0, 0);
     while(WindowShouldClose() == false and !QUITCONFIRMED){
 
         BeginDrawing();
@@ -630,11 +631,11 @@ int main(int argc, char* argv[]) {
                 }
                 
                 
-                DrawTexturePro(CheckCollisionPointRec(mouse_pos, menu_button_rect2) ? menu_button_hovered : menu_button, A_32x32_texure_source, menu_button_rect2, {0, 0}, 0, WHITE);
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, menu_button_rect2) ? menu_button_hovered : menu_button, x32, menu_button_rect2, {0, 0}, 0, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, menu_button_rect2)) gameState = MENU;
-                DrawTexturePro(CheckCollisionPointRec(mouse_pos, restart_button_rect2) ? restart_button_hovered : restart_button, A_32x32_texure_source, restart_button_rect2, {0, 0}, 0, WHITE);
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, restart_button_rect2) ? restart_button_hovered : restart_button, x32, restart_button_rect2, {0, 0}, 0, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, restart_button_rect2)) gameState = RESTART;
-                DrawTexturePro(CheckCollisionPointRec(mouse_pos, next_level_button_rect2) ? next_level_button_hovered : next_level_button, A_32x32_texure_source, next_level_button_rect2, {0, 0}, 0, WHITE);
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, next_level_button_rect2) ? next_level_button_hovered : next_level_button, x32, next_level_button_rect2, {0, 0}, 0, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, next_level_button_rect2)){
                     onetimeloop = true;
                     win_sound_played = false;
@@ -652,9 +653,9 @@ int main(int argc, char* argv[]) {
                 ClearBackground(BLACK);
                 const char* gameover = "GAME OVER!";
                 DrawText(gameover, 65.0f, height/3.0f, 80.0f, WHITE);
-                DrawTexturePro(CheckCollisionPointRec(mouse_pos, {224.0, 256.0, 64.0f, 64.0f}) ? menu_button_hovered : menu_button, A_32x32_texure_source, {224.0, 256.0, 64.0f, 64.0f}, {0, 0}, 0, WHITE);
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, {224.0, 256.0, 64.0f, 64.0f}) ? menu_button_hovered : menu_button, x32, {224.0, 256.0, 64.0f, 64.0f}, {0, 0}, 0, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, {224.0, 256.0, 64.0f, 64.0f})) gameState = MENU;
-                DrawTexturePro(CheckCollisionPointRec(mouse_pos, {352.0, 256.0, 64.0f, 64.0f}) ? restart_button_hovered : restart_button, A_32x32_texure_source, {352.0, 256.0, 64.0f, 64.0f}, {0, 0}, 0, WHITE);
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, {352.0, 256.0, 64.0f, 64.0f}) ? restart_button_hovered : restart_button, x32, {352.0, 256.0, 64.0f, 64.0f}, {0, 0}, 0, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, {352.0, 256.0, 64.0f, 64.0f})) gameState = RESTART;
                 
                 break;
@@ -702,7 +703,7 @@ int main(int argc, char* argv[]) {
                     Rectangle button_rect = {button.position.x, button.position.y, button.size.x, button.size.y};
                     Texture2D hovered_or_not_texture = CheckCollisionPointRec(mouse_pos,button_rect) ? plate_button_hovered : plate_button;
                     
-                    DrawTexturePro(button.locked ? locked_level_icon : hovered_or_not_texture, A_32x32_texure_source, button_rect, {0, 0}, 0, WHITE);
+                    DrawTexturePro(button.locked ? locked_level_icon : hovered_or_not_texture, x32, button_rect, {0, 0}, 0, WHITE);
                     int fontsize;
                     Vector2 placement = {button.position.x + 8, button.position.y + 2.5f};
                     if(button.lvl_id == 1) placement = {button.position.x + 12, button.position.y + 2.5f};
@@ -722,11 +723,11 @@ int main(int argc, char* argv[]) {
                 ClearBackground(BLACK);
                 const char* gameover = "PAUSED";
                 DrawText(gameover, 65.0f, height/3.0f, 80.0f, WHITE);
-                DrawTexturePro(CheckCollisionPointRec(mouse_pos, menu_button_rect2) ? menu_button_hovered : menu_button, A_32x32_texure_source, menu_button_rect2, {0, 0}, 0, WHITE);
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, menu_button_rect2) ? menu_button_hovered : menu_button, x32, menu_button_rect2, {0, 0}, 0, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, menu_button_rect2)) gameState = MENU;
-                DrawTexturePro(CheckCollisionPointRec(mouse_pos, restart_button_rect2) ? restart_button_hovered : restart_button, A_32x32_texure_source, restart_button_rect2, {0, 0}, 0, WHITE);
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, restart_button_rect2) ? restart_button_hovered : restart_button, x32, restart_button_rect2, {0, 0}, 0, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, restart_button_rect2)) gameState = RESTART;
-                DrawTexturePro(CheckCollisionPointRec(mouse_pos, resume_button_rect2) ? resume_button_hovered : resume_button, A_32x32_texure_source, next_level_button_rect2, {0, 0}, 0, WHITE);
+                DrawTexturePro(CheckCollisionPointRec(mouse_pos, resume_button_rect2) ? resume_button_hovered : resume_button, x32, next_level_button_rect2, {0, 0}, 0, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, resume_button_rect2)) gameState = GAME;
                 break;
             }
@@ -767,34 +768,49 @@ int main(int argc, char* argv[]) {
                     
                     switch(current_screen){
                         case 1: {
-                    bool hovered = (CheckCollisionPointRec(mouse_pos, icon.rect));
-                    DrawTexturePro(hovered ? plate_button_hovered : plate_button, A_32x32_texure_source, icon.rect, {0, 0}, 0, icon.unlocked ? GREEN : RED);
-                    DrawTexturePro(icon.icon, {0, 0, 16, 16}, {icon.rect.x + 11, icon.rect.y + 9, 48, 48}, {0, 0}, 0, WHITE);
-                    if(!icon.unlocked){
-                        DrawTexturePro(coin, {0, 0, 8, 8}, {icon.rect.x + 10, icon.rect.y + 61, 12, 12}, {0, 0}, 0, WHITE);
-                        DrawText(std::to_string(icon.price).c_str(), icon.rect.x + 24, icon.rect.y + 61, 14, GOLD);
-                        
-                    }
-                    else if(icon.unlocked){
-                        if (selected_player == icon.player_id){
-                            std::string selected = "SELECTED";
-                            DrawText(selected.c_str(), icon.rect.x + 24, icon.rect.y + 61, 14, LIGHTGRAY);
+                            bool hovered = (CheckCollisionPointRec(mouse_pos, icon.rect));
+                            DrawTexturePro(hovered ? plate_button_hovered : plate_button, x32, icon.rect, {0, 0}, 0, icon.unlocked ? GREEN : RED);
+                            DrawTexturePro(icon.icon, {0, 0, 16, 16}, {icon.rect.x + 11, icon.rect.y + 9, 48, 48}, {0, 0}, 0, WHITE);
+                            if(!icon.unlocked){
+                                DrawTexturePro(coin, {0, 0, 8, 8}, {icon.rect.x + 10, icon.rect.y + 61, 12, 12}, {0, 0}, 0, WHITE);
+                                DrawText(std::to_string(icon.price).c_str(), icon.rect.x + 24, icon.rect.y + 61, 14, GOLD);
+                                
+                            }
+                            else if(icon.unlocked){
+                                if (selected_player == icon.player_id){
+                                    std::string selected = "SELECTED";
+                                    DrawText(selected.c_str(), icon.rect.x + 24, icon.rect.y + 61, 14, LIGHTGRAY);
+                                }
+                            }
+                            if(!icon.unlocked and IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, icon.rect)){
+                                current_screen = 2;
+                            }
+                            break;
+                            }
+                        case 2:{
+                            bool back = false;
+                            if(!back){
+                                Rectangle ft_rect = {200, 150, 240, 150};
+                                floating_window(ft_rect, "Purchase?", back, true, 2);
+                                Rectangle button_rect1 = {ft_rect.x + 30, ft_rect.y + 110, 50, 30};
+                                bool hovered = CheckCollisionPointRec(mouse_pos, button_rect1);
+                                DrawTexturePro(hovered ? plate_button_hovered : plate_button, x32, button_rect1, {0, 0}, 0, WHITE);
+                                std::string no = "No";
+                                DrawTextPro(LatoBold, no.c_str(), {button_rect1.x + 7, button_rect1.y + 3}, {0, 0}, 0, 24, 2.0f, WHITE);
+                                std::string yes = "Yes";
+                                Rectangle button_rect2 = {ft_rect.x + 160, ft_rect.y + 110, 50, 30};
+                                bool hovered2 = CheckCollisionPointRec(mouse_pos, button_rect2);
+                                DrawTexturePro(hovered2 ? plate_button_hovered : plate_button, x32, button_rect2, {0, 0}, 0, WHITE);
+                                DrawTextPro(LatoBold, yes.c_str(), {button_rect2.x + 7, button_rect2.y + 3}, {0, 0}, 0, 24, 2.0f, WHITE);
+                                std::string purcofrm = "Are you sure that you want to buy";
+                                
+                                DrawTextPro(LatoBold, purcofrm.c_str(), {ft_rect.x + 5, ft_rect.y + 40}, {0, 0}, 0, 14, 2.0f, WHITE);
+                                DrawTextPro(LatoBold, icon.name.c_str(), {ft_rect.x + 5, ft_rect.y + 50}, {0, 0}, 0, 14, 2.0f, LIGHTBLUE);
+                            }
+                            if(back){
+                                current_screen = 1;
+                            }
                         }
-                    }
-                    if(!icon.unlocked and IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, icon.rect)){
-                        current_screen = 2;
-                    }
-                    break;
-                }
-                case 2:{
-                    bool back = false;
-                    if(!back){
-                        floating_window({200, 150, 240, 150}, "Purchase?", back, true, 2);
-                    }
-                    if(back){
-                        current_screen = 1;
-                    }
-                }
             }
 
                     
