@@ -15,7 +15,8 @@ float sfx_volume = 1.0f;
 Color LIGHTBLUE = {0, 255, 255, 255};
 bool rst_notf_sd = false;
 int st_menu = 1;
-int selected_player= 2;
+int selected_player= 3;
+
 
 bool check_rectangle_equality(Rectangle Rectangle1, Rectangle Rectangle2){
     bool E_X = false;
@@ -178,7 +179,7 @@ void slider_toggle(
 
 
 }
-void floating_window(Rectangle window_rect, bool line = false, int sections = 0){
+void floating_window(Rectangle window_rect, std::string WindowTitle, bool& back, bool line = false, int sections = 0){
 
     DrawRectangleRec(window_rect, WHITE);
     Rectangle dest_rec = {window_rect.x + window_rect.width - 25, window_rect.y + 10.0f, 16.0f, 16.0f};
@@ -186,35 +187,43 @@ void floating_window(Rectangle window_rect, bool line = false, int sections = 0)
     DrawRectangleV({window_rect.x + 2.0f, window_rect.y + 2.0f}, {window_rect.width - 4.0f, window_rect.height - 4.0f}, BLACK);
     bool colliding = CheckCollisionPointRec(GetMousePosition(), dest_rec);
     DrawTexturePro(colliding ? cross_button_hovered : cross_button, src_rec, dest_rec, {0.0f, 0.0f}, 0, WHITE);
-    if(colliding and IsMouseButtonDown(MOUSE_BUTTON_LEFT)) gameState = MENU; // i will set this later to be LAST_GAMESTATE
-    if (sections > 0){
-        double fontsize = 18.0; 
-        std::string section1 = "Audio";
-        Vector2 sec1_size = MeasureTextEx(GetFontDefault(), section1.c_str(), 24, 2.0f);
-        Rectangle sections_button_rect = {window_rect.x + 20, window_rect.y + 50, sec1_size.x, sec1_size.y};
-        DrawTexturePro(CheckCollisionPointRec(GetMousePosition(), sections_button_rect) ? plate_button_hovered : plate_button, {0, 0, 32, 32}, sections_button_rect, {0, 0}, 0, WHITE);
-        DrawTextPro(GetFontDefault(), section1.c_str(), {sections_button_rect.x + 7, sections_button_rect.y + 3}, {0, 0}, 0, fontsize, 2.0f, WHITE);
-        if(CheckCollisionPointRec(GetMousePosition(), sections_button_rect) and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) st_menu = 1;
+    if(colliding and IsMouseButtonDown(MOUSE_BUTTON_LEFT)) back = true; // i will set this later to be LAST_GAMESTATE
+    switch(sections){
+        case 1: {
+            double fontsize = 18.0; 
+            std::string section1 = "Audio";
+            Vector2 sec1_size = MeasureTextEx(GetFontDefault(), section1.c_str(), 24, 2.0f);
+            Rectangle sections_button_rect = {window_rect.x + 20, window_rect.y + 50, sec1_size.x, sec1_size.y};
+            DrawTexturePro(CheckCollisionPointRec(GetMousePosition(), sections_button_rect) ? plate_button_hovered : plate_button, {0, 0, 32, 32}, sections_button_rect, {0, 0}, 0, WHITE);
+            DrawTextPro(GetFontDefault(), section1.c_str(), {sections_button_rect.x + 7, sections_button_rect.y + 3}, {0, 0}, 0, fontsize, 2.0f, WHITE);
+            if(CheckCollisionPointRec(GetMousePosition(), sections_button_rect) and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) st_menu = 1;
 
-        std::string section2 = "Controls";
-        Vector2 sec2_size = MeasureTextEx(GetFontDefault(), section2.c_str(), 24, 2.0f);
-        Rectangle sections2_button_rect = {sections_button_rect.x + sections_button_rect.width + 10, window_rect.y + 50, sec2_size.x, sec2_size.y};
-        DrawTexturePro(CheckCollisionPointRec(GetMousePosition(), sections2_button_rect) ? plate_button_hovered : plate_button, {0, 0, 32, 32}, sections2_button_rect, {0, 0}, 0, WHITE);
-        DrawTextPro(GetFontDefault(), section2.c_str(), {sections2_button_rect.x + 10, sections2_button_rect.y + 3}, {0, 0}, 0, fontsize, 2.0f, WHITE);
-        if(CheckCollisionPointRec(GetMousePosition(), sections2_button_rect) and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) st_menu = 2;
+            std::string section2 = "Controls";
+            Vector2 sec2_size = MeasureTextEx(GetFontDefault(), section2.c_str(), 24, 2.0f);
+            Rectangle sections2_button_rect = {sections_button_rect.x + sections_button_rect.width + 10, window_rect.y + 50, sec2_size.x, sec2_size.y};
+            DrawTexturePro(CheckCollisionPointRec(GetMousePosition(), sections2_button_rect) ? plate_button_hovered : plate_button, {0, 0, 32, 32}, sections2_button_rect, {0, 0}, 0, WHITE);
+            DrawTextPro(GetFontDefault(), section2.c_str(), {sections2_button_rect.x + 10, sections2_button_rect.y + 3}, {0, 0}, 0, fontsize, 2.0f, WHITE);
+            if(CheckCollisionPointRec(GetMousePosition(), sections2_button_rect) and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) st_menu = 2;
 
 
-        std::string section3 = "Other";
-        Vector2 sec3_size = MeasureTextEx(GetFontDefault(), section2.c_str(), 24, 2.0f);
-        Rectangle sections3_button_rect = {sections2_button_rect.x + sections2_button_rect.width + 10, window_rect.y + 50, sec3_size.x, sec3_size.y};
-        DrawTexturePro(CheckCollisionPointRec(GetMousePosition(), sections3_button_rect) ? plate_button_hovered : plate_button, {0, 0, 32, 32}, sections3_button_rect, {0, 0}, 0, WHITE);
-        DrawTextPro(GetFontDefault(), section3.c_str(), {sections3_button_rect.x + 10, sections3_button_rect.y + 3}, {0, 0}, 0, fontsize, 2.0f, WHITE);
-        if(CheckCollisionPointRec(GetMousePosition(), sections3_button_rect) and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) st_menu = 3;
+            std::string section3 = "Other";
+            Vector2 sec3_size = MeasureTextEx(GetFontDefault(), section2.c_str(), 24, 2.0f);
+            Rectangle sections3_button_rect = {sections2_button_rect.x + sections2_button_rect.width + 10, window_rect.y + 50, sec3_size.x, sec3_size.y};
+            DrawTexturePro(CheckCollisionPointRec(GetMousePosition(), sections3_button_rect) ? plate_button_hovered : plate_button, {0, 0, 32, 32}, sections3_button_rect, {0, 0}, 0, WHITE);
+            DrawTextPro(GetFontDefault(), section3.c_str(), {sections3_button_rect.x + 10, sections3_button_rect.y + 3}, {0, 0}, 0, fontsize, 2.0f, WHITE);
+            if(CheckCollisionPointRec(GetMousePosition(), sections3_button_rect) and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) st_menu = 3;
+            break;
+        }
+        case 2: {
+            if(line){
+                DrawLine(window_rect.x, window_rect.y + 35, window_rect.x + window_rect.width, window_rect.y + 35, WHITE);
+                float titlewidth = MeasureText(WindowTitle.c_str(), 24);
+                DrawTextPro(Lato, WindowTitle.c_str(), {window_rect.x + window_rect.width / 2 - titlewidth / 2, window_rect.y + 7}, {0, 0}, 0, 24, 2.0f, WHITE);
+
+            }
+        }
     }
-    if(line){
-        DrawLine(window_rect.x, window_rect.y + 35, window_rect.x + window_rect.width, window_rect.y + 35, WHITE);
-    }
-    
+ 
 
 }
 void draw_currency(Vector2 position = {560, 7}){
@@ -325,6 +334,7 @@ void play_level(
         player.position = spawn_point;
         for (auto& saw : movingsawblades) saw.sb_pos_current = saw.sb_pos_a;
         rst_notf_sd = true;
+        
     }
 
     onetimeloop = false;
@@ -675,8 +685,10 @@ int main(int argc, char* argv[]) {
                 break;
             }
             case QUIT: {
-                floating_window({195.5f, 180.f, 249.0f, 100.0f}, 1);
-                
+                bool back = false;
+                floating_window({195.5f, 180.f, 249.0f, 100.0f}, "QUIT?", back, true, 2);
+                if(back) gameState = MENU;
+
                 DrawTextPro(Lato, "Press Enter to Quit.", {269.0f, 225.0f}, {MeasureTextEx(GetFontDefault(), "Press Enter to Quit.", 15.0f, 0.0f).x/2.0f, 0.0f}, 0.0f, 28, 2.0f, WHITE);
                 if(IsKeyPressed(KEY_ENTER)) QUITCONFIRMED = true;
                 if(IsKeyPressed(KEY_ESCAPE)) gameState = MENU;         
@@ -720,7 +732,9 @@ int main(int argc, char* argv[]) {
             }
             case SETTINGS: {
                 Rectangle target = {77, 62, 500, 300};
-                floating_window(target, true, 4);
+                bool back = false;
+                floating_window(target, "SETTINGS", back, true, 1);
+                if(back) gameState = MENU;
                 std::string title = "SETTINGS";
                 static bool toggled = false; 
                 static int test = 30;
@@ -746,25 +760,48 @@ int main(int argc, char* argv[]) {
                 ClearBackground(BLACK);
                 static Rectangle rect  = {30, 66, 100, 100};
                 DrawLine(320, 0, 320, 416, WHITE);
+                static int current_screen = 1;
                 /////////////////////////////////
+                DrawLine(320, 0, 320, 416, WHITE);
                 for(auto& icon : player_icons){
-
+                    
+                    switch(current_screen){
+                        case 1: {
                     bool hovered = (CheckCollisionPointRec(mouse_pos, icon.rect));
                     DrawTexturePro(hovered ? plate_button_hovered : plate_button, A_32x32_texure_source, icon.rect, {0, 0}, 0, icon.unlocked ? GREEN : RED);
                     DrawTexturePro(icon.icon, {0, 0, 16, 16}, {icon.rect.x + 11, icon.rect.y + 9, 48, 48}, {0, 0}, 0, WHITE);
                     if(!icon.unlocked){
                         DrawTexturePro(coin, {0, 0, 8, 8}, {icon.rect.x + 10, icon.rect.y + 61, 12, 12}, {0, 0}, 0, WHITE);
                         DrawText(std::to_string(icon.price).c_str(), icon.rect.x + 24, icon.rect.y + 61, 14, GOLD);
+                        
                     }
                     else if(icon.unlocked){
-                        if (selected_player = icon.player_id){
+                        if (selected_player == icon.player_id){
                             std::string selected = "SELECTED";
                             DrawText(selected.c_str(), icon.rect.x + 24, icon.rect.y + 61, 14, LIGHTGRAY);
                         }
                     }
+                    if(!icon.unlocked and IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, icon.rect)){
+                        current_screen = 2;
+                    }
+                    break;
+                }
+                case 2:{
+                    bool back = false;
+                    if(!back){
+                        floating_window({200, 150, 240, 150}, "Purchase?", back, true, 2);
+                    }
+                    if(back){
+                        current_screen = 1;
+                    }
+                }
+            }
+
+                    
+                    
                 }
                 /////////////////////////////////
-                DrawLine(320, 0, 320, 416, WHITE);
+                
                 DrawRectangle(0, 0, 650, 36, BLACK);
                 DrawRectangle(0, 394, 640, 50, BLACK);
                 DrawLine(0, 36, 640, 36, WHITE);
@@ -776,6 +813,7 @@ int main(int argc, char* argv[]) {
             }
         
         }
+    
         Vector2 mos = GetMousePosition();
     int mos11 = mos.x;
     int mos22 = mos.y;
