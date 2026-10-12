@@ -153,7 +153,7 @@ std::vector<LevelGrid> level_grid {
         { {64.0, 64.0}, {32.0f, 32.0f}, false, 1 },
         { {112.0, 64.0}, {32.0f, 32.0f}, true, 2 },
         { {160.0, 64.0}, {32.0f, 32.0f}, true, 3 },
-        { {208.0, 64.0}, {32.0f, 32.0f}, false, 4 },
+        { {208.0, 64.0}, {32.0f, 32.0f}, true, 4 },
         { {256.0, 64.0}, {32.0f, 32.0f}, true, 5 },
         { {304.0, 64.0}, {32.0f, 32.0f}, true, 6 },
         { {352.0, 64.0}, {32.0f, 32.0f}, true, 7 },
@@ -211,7 +211,8 @@ std::vector<PlayerIconShopItem> player_icons{
     {{27, 66, 70, 83}, "Billy", 0, true, player_icon, 0},
     {{127, 66, 70, 83},"Don", 100, false, player_icon2, 1},
     {{227, 66, 70, 83},"Zombie guy", 100, false, player_icon3, 2},
-    {{27, 170, 70, 83}, "Creepy Johnny", 100, false, player_icon4, 3}
+    {{27, 170, 70, 83}, "Creepy Johnny", 100, false, player_icon4, 3},
+    {{127, 170, 70, 83}, "Skeppy", 500, false, player_icon5, 4}
 }; // alright bro i am done with these characters
 
 
@@ -220,3 +221,4 @@ Texture2D player_icon;
 Texture2D player_icon2;
 Texture2D player_icon3;
 Texture2D player_icon4;
+Texture2D player_icon5;

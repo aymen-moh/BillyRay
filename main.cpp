@@ -13,6 +13,7 @@ int width;
 bool music_enabled = true;
 bool sfx_enabled = true;
 bool admin = false; 
+bool outline = true;
 float sfx_volume = 1.0f;
 Color LIGHTBLUE = {0, 255, 255, 255};
 bool rst_notf_sd = false;
@@ -397,13 +398,14 @@ void play_level(
 
     /////////////////////////////////////////////////////////////
     
-    DrawTexture(bg, 0, 0, SKYBLUE);
-    for(const auto& block : blocks)DrawRectangleV(block.position, block.size, block.color);
+    DrawTexturePro(bg, {0, 0, 20, 13}, {0, 0, 640, 416}, {0, 0}, 0, WHITE);
+    if(outline) for(const auto& block : blocks)DrawRectangleV({block.position.x - 3, block.position.y - 3}, {block.size.x + 6, block.size.y + 6}, BLACK);
+    for(const auto& block : blocks)DrawRectangleV(block.position, block.size, outline ? block.color : DARKGRAY);
     for(const auto& saw : movingsawblades){
         Rectangle src_rec = {0.0f, 0.0f, static_cast<float>(sawblade.width), static_cast<float>(sawblade.height)};
         Rectangle dest_rec = {saw.sb_pos_current.x, saw.sb_pos_current.y, saw.sb_radius * 2.3f, saw.sb_radius * 2.3f};
         DrawTexturePro(sawblade, src_rec, dest_rec, {dest_rec.width / 2.0f, dest_rec.height / 2.0f}, saw.rotation, WHITE);
-    }   
+    }  
 
     
         
@@ -762,6 +764,7 @@ int main(int argc, char* argv[]) {
                     case 3: {
                         
                         toggle({target.x + 12, target.y + 100}, admin, "Admin");
+                        toggle({target.x + 12, target.y + 110}, outline, "Block Outline");
                     }
                 }
                 break;

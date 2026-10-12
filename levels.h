@@ -40,7 +40,7 @@ extern Texture2D player_icon;
 extern Texture2D player_icon2;
 extern Texture2D player_icon3;
 extern Texture2D player_icon4;
-
+extern Texture2D player_icon5;
 
 extern std::vector<MovingSawblade> lvl1_sawblades;
 extern std::vector<Block> lvl1_blocks;
