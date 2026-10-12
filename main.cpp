@@ -9,6 +9,7 @@
 int balance = 120;
 Font Lato;
 Font LatoBold;
+int width;
 bool music_enabled = true;
 bool sfx_enabled = true;
 bool admin = false; 
@@ -16,7 +17,7 @@ float sfx_volume = 1.0f;
 Color LIGHTBLUE = {0, 255, 255, 255};
 bool rst_notf_sd = false;
 int st_menu = 1;
-int selected_player= 3;
+int selected_player= 0;
 
 
 bool check_rectangle_equality(Rectangle Rectangle1, Rectangle Rectangle2){
@@ -237,21 +238,23 @@ void draw_currency(Vector2 position = {560, 7}){
     DrawText(balance_str.c_str(), position.x + 24, position.y + 4, fontssize, GOLD);
 }
 
-void push_notification(std::string text, float duration, int pos_change, float anim_speed, bool reset){
+void push_notification(std::string text, float duration, int pos_change, float anim_speed, bool reset, Color Colour = WHITE, Font font = GetFontDefault()){
     float init_current_y = -30.0f;
-    static Vector2 current = {320.0f, init_current_y};
+    Vector2 text_length = MeasureTextEx(font, text.c_str(), 20, 2.0f);
+    static Vector2 current = {1, init_current_y};
+    current.x = width / 2 - text_length.x / 2;
     static float time_spent = 0.0f;
     static bool play_end_animation = false;
     static bool bool1 = true;
     static bool bool2 = true;
     static bool play_start_animation = true;
     if(reset){
-        Vector2 current = {320.0f, init_current_y};
-        float time_spent = 0.0f;
-        bool play_end_animation = false;
-        bool bool1 = true;
-        bool bool2 = true;
-        bool play_start_animation = true;
+        current = {320.0f, init_current_y};
+        time_spent = 0.0f;
+        play_end_animation = false;
+        bool1 = true;
+        bool2 = true;
+        play_start_animation = true;
     }
     float dt = GetFrameTime();
     if(play_start_animation){
@@ -283,7 +286,7 @@ void push_notification(std::string text, float duration, int pos_change, float a
         
         if (current.y > init_current_y) current.y -= anim_speed;
     }
-    DrawText(text.c_str(), current.x, current.y, 24, WHITE);
+    DrawTextPro(font, text.c_str(), {current.x, current.y}, {0, 0}, 0, 20, 2.0f, Colour);
     
     
 }
@@ -425,7 +428,7 @@ int main(int argc, char* argv[]) {
     
     
 
-//,
+//
 
     
     std::vector<MovingSawblade> movingsawblades {
@@ -449,7 +452,7 @@ int main(int argc, char* argv[]) {
     Rectangle quit_button_rect = {32.0, 304.0, 96.0f, 32.0f}; 
 
  
-    int width = 640;
+    width = 640;
     int height = 416; // changed res to be able todevide by 32/16 to use tiled
     std::string title = "Billy Ray V0.0.1"; //i was gonna include the version number in a variable but i am just gonna do it this way :p
     InitWindow(width, height, title.c_str());
@@ -763,6 +766,9 @@ int main(int argc, char* argv[]) {
                 DrawLine(320, 0, 320, 416, WHITE);
                 static int current_screen = 1;
                 static int icon_name = 0;
+                static bool rst_notf = false;
+                static bool show_notf = false;
+                static std::string purchase_successful;
                 /////////////////////////////////
                 DrawLine(320, 0, 320, 416, WHITE);
                 for(auto& icon : player_icons){
@@ -778,6 +784,9 @@ int main(int argc, char* argv[]) {
                                 
                             }
                             else if(icon.unlocked){
+                                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and hovered){
+                                    selected_player = icon.player_id;
+                                }
                                 if (selected_player == icon.player_id){
                                     std::string selected = "SELECTED";
                                     DrawText(selected.c_str(), icon.rect.x + 24, icon.rect.y + 61, 14, LIGHTGRAY);
@@ -792,6 +801,8 @@ int main(int argc, char* argv[]) {
                         case 2:{
                             bool back = false;
                             if(!back){
+                                bool insufficient_bal = false;
+                                if(balance < player_icons[icon_name].price) insufficient_bal = true;
                                 Rectangle ft_rect = {200, 150, 240, 150};
                                 floating_window(ft_rect, "Purchase?", back, true, 2);
                                 Rectangle button_rect1 = {ft_rect.x + 30, ft_rect.y + 110, 50, 30};
@@ -799,33 +810,44 @@ int main(int argc, char* argv[]) {
                                 DrawTexturePro(hovered ? plate_button_hovered : plate_button, x32, button_rect1, {0, 0}, 0, WHITE);
                                 std::string no = "No";
                                 DrawTextPro(LatoBold, no.c_str(), {button_rect1.x + 12, button_rect1.y + 3}, {0, 0}, 0, 24, 2.0f, WHITE);
-                                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and hovered) back = true;
+                                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and hovered){
+                                    back = true;
+                                    show_notf = false;
+                                }
                                 std::string yes = "Yes";
                                 Rectangle button_rect2 = {ft_rect.x + 160, ft_rect.y + 110, 50, 30};
                                 bool hovered2 = CheckCollisionPointRec(mouse_pos, button_rect2);
-                                DrawTexturePro(hovered2 ? plate_button_hovered : plate_button, x32, button_rect2, {0, 0}, 0, WHITE);
-                                DrawTextPro(LatoBold, yes.c_str(), {button_rect2.x + 7, button_rect2.y + 3}, {0, 0}, 0, 24, 2.0f, WHITE);
-                                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and hovered){
-
+                                DrawTexturePro(insufficient_bal ? plate_button : hovered2 ? plate_button_hovered : plate_button, x32, button_rect2, {0, 0}, 0, WHITE);
+                                DrawTextPro(LatoBold, yes.c_str(), {button_rect2.x + 7, button_rect2.y + 3}, {0, 0}, 0, 24, 2.0f, insufficient_bal ? GRAY : WHITE);
+                                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and hovered2 and !insufficient_bal){
+                                    if(balance > player_icons[icon_name].price){
+                                        player_icons[icon_name].unlocked = true;
+                                        show_notf = true;
+                                        rst_notf = true;
+                                        purchase_successful = purchase_successful = TextFormat("You Just Bought %s for %d coins!", player_icons[icon_name].name.c_str(), player_icons[icon_name].price); 
+                                        balance -= player_icons[icon_name].price;
+                                        back = true;
+                                    }
                                 }
-                                std::string purcofrm = "Are you sure that you want to buy";
                                 
+                                std::string purcofrm = "Are you sure that you want to buy";
                                 DrawTextPro(LatoBold, purcofrm.c_str(), {ft_rect.x + 5, ft_rect.y + 40}, {0, 0}, 0, 14, 2.0f, WHITE);
                                 Vector2 icon_name_length = MeasureTextEx(LatoBold, player_icons[icon_name].name.c_str(), 24, 2.0f);
                                 DrawTextPro(LatoBold, player_icons[icon_name].name.c_str(), {ft_rect.x + ft_rect.width / 2 - icon_name_length.x / 2, ft_rect.y + 50}, {0, 0}, 0, 24, 2.0f, LIGHTBLUE);
                                 std::string confirmtxt2 = "For";
                                 DrawTextPro(LatoBold, confirmtxt2.c_str(), {ft_rect.x + 83, ft_rect.y + 70}, {0,0}, 0, 18, 2.0f, WHITE);
-                                DrawTextPro(LatoBold, std::to_string(balance).c_str(), {ft_rect.x + 131, ft_rect.y + 70}, {0,0}, 0, 18, 2.0f, GOLD);
+                                DrawTextPro(LatoBold, std::to_string(player_icons[icon_name].price).c_str(), {ft_rect.x + 131, ft_rect.y + 70}, {0,0}, 0, 18, 2.0f, GOLD);
                                 DrawTexturePro(coin, {0, 0, 8, 8}, {ft_rect.x + 117, ft_rect.y + 74, 12, 12}, {0, 0}, 0, WHITE);
                                 std::string confirmtxt3 = "?";
-                                Vector2 balance_length = MeasureTextEx(LatoBold, std::to_string(balance).c_str(), 18, 2.0f);
+                                Vector2 balance_length = MeasureTextEx(LatoBold, std::to_string(player_icons[icon_name].price).c_str(), 18, 2.0f);
                                 DrawTextPro(LatoBold, confirmtxt3.c_str(), {ft_rect.x + 133 + balance_length.x, ft_rect.y + 70}, {0, 0}, 0, 18, 2.0f, WHITE);
                             }
                             if(back){
                                 current_screen = 1;
-                            }
+                                rst_notf = true;
                         }
-            }
+                    }
+                    }
 
                     
                     
@@ -839,12 +861,15 @@ int main(int argc, char* argv[]) {
                 DrawTexturePro(CheckCollisionPointRec(mouse_pos, {5, 5, 24, 24}) ? resume_button_hovered : resume_button, {0, 0, -32, 32}, {5, 5, 24, 24}, {0, 0}, 0, WHITE);
                 if(CheckCollisionPointRec(mouse_pos, {5, 5, 24, 24}) and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) gameState = MENU;
                 draw_currency();
+                if(show_notf) push_notification(purchase_successful, 2.0f, 37, 2.0f, rst_notf, LIME, LatoBold);
+                if(show_notf) rst_notf = false;
+
                 break;
             }
         
         }
     
-        Vector2 mos = GetMousePosition();
+    Vector2 mos = GetMousePosition();
     int mos11 = mos.x;
     int mos22 = mos.y;
     std::string mos1 = std::to_string(mos11);
@@ -852,7 +877,7 @@ int main(int argc, char* argv[]) {
     DrawText(mos1.c_str(), 50, 50, 24, WHITE);
     DrawText(mos2.c_str(), 100, 50, 24, WHITE);
     EndDrawing();
-    } 
+    }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     UnloadTexture(plate_button);
     UnloadTexture(plate_button_hovered);
