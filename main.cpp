@@ -4,7 +4,7 @@
 #include <vector>
 #include <raymath.h>
 #include "levels.h"
-
+#include "reasings.h"
 
 int balance = 120;
 Font Lato;
@@ -45,6 +45,7 @@ struct Player {
     float p_height = 29.0f;
     float speed = 120.0f;
     Rectangle player = {position.x, position.y, p_width, p_height};
+    
 };
 
 struct spear {
@@ -325,6 +326,10 @@ void play_level(
     
 ){
     static bool shrunk = false;
+    static bool dashing = false;
+    static float dash_time = 0.0f;
+    static Vector2 mov_dir = {0, 0};
+    Vector2 dir = {(float)(IsKeyDown(KEY_D)) - (IsKeyDown(KEY_A)), (float)(IsKeyDown(KEY_W)) - (IsKeyDown(KEY_S))};
     static bool shrinking_sound = true;
     static bool potion_collected = false;
 
@@ -355,6 +360,7 @@ void play_level(
     if(IsKeyDown(KEY_A)) next_pos.x -= player.speed *dt;
     if(IsKeyDown(KEY_S)) next_pos.y += player.speed *dt;    
     if(IsKeyDown(KEY_D)) next_pos.x += player.speed *dt;
+
     next_step = {next_pos.x, next_pos.y, player.p_width, player.p_height};
     bool collision = false;
     float rotation = 0.0f;
@@ -495,6 +501,7 @@ int main(int argc, char* argv[]) {
               player_icons[1].icon = LoadTexture("Assets/Textures/Icon2.png");
               player_icons[2].icon = LoadTexture("Assets/Textures/Icon3.png");
               player_icons[3].icon = LoadTexture("Assets/Textures/Icon4.png");
+              player_icons[4].icon = LoadTexture("Assets/Textures/Icon5.png");
               checkbox = LoadTexture("Assets/Textures/gui/checkbox.png");
               checkbox_hovered = LoadTexture("Assets/Textures/gui/checkbox_hovered.png");
               checkbox_toggled = LoadTexture("Assets/Textures/gui/checkbox_checked.png");
@@ -745,9 +752,9 @@ int main(int argc, char* argv[]) {
                 DrawTextPro(Lato, title.c_str(), {target.x + 200, target.y + 5}, {0, 0}, 0, 24, 2.0f, WHITE);
                 switch(st_menu){
                     case 1: {
-                        toggle({target.x + 12, target.y + 100}, sfx_enabled, "SFX");
+                        slider_toggle({target.x + 12, target.y + 150}, sfx_enabled, "SFX", sfx_volume, 100, 100.0f, false, true, true, true, false);
                         toggle({target.x + 12, target.y + 125}, music_enabled, "MUSIC");
-                        slider_toggle({target.x + 12, target.y + 150}, sfx_enabled, "SFiugguiguigvhgghghjkgghX", sfx_volume, 100, 100.0f, false, true, true, true, false);
+                        
                         
                         break;
                         
@@ -768,6 +775,7 @@ int main(int argc, char* argv[]) {
                 static int icon_name = 0;
                 static bool rst_notf = false;
                 static bool show_notf = false;
+                
                 static std::string purchase_successful;
                 /////////////////////////////////
                 DrawLine(320, 0, 320, 416, WHITE);
@@ -776,25 +784,28 @@ int main(int argc, char* argv[]) {
                     switch(current_screen){
                         case 1: {
                             bool hovered = (CheckCollisionPointRec(mouse_pos, icon.rect));
-                            DrawTexturePro(hovered ? plate_button_hovered : plate_button, x32, icon.rect, {0, 0}, 0, icon.unlocked ? GREEN : RED);
-                            DrawTexturePro(icon.icon, {0, 0, 16, 16}, {icon.rect.x + 11, icon.rect.y + 9, 48, 48}, {0, 0}, 0, WHITE);
-                            if(!icon.unlocked){
-                                DrawTexturePro(coin, {0, 0, 8, 8}, {icon.rect.x + 10, icon.rect.y + 61, 12, 12}, {0, 0}, 0, WHITE);
-                                DrawText(std::to_string(icon.price).c_str(), icon.rect.x + 24, icon.rect.y + 61, 14, GOLD);
-                                
-                            }
-                            else if(icon.unlocked){
+                            bool selected = false;
+                            
+                            
+                            if(icon.unlocked){
                                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and hovered){
                                     selected_player = icon.player_id;
                                 }
                                 if (selected_player == icon.player_id){
-                                    std::string selected = "SELECTED";
-                                    DrawText(selected.c_str(), icon.rect.x + 24, icon.rect.y + 61, 14, LIGHTGRAY);
+                                    selected = true;
                                 }
                             }
                             if(!icon.unlocked and IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, icon.rect)){
                                 icon_name = icon.player_id;
                                 current_screen = 2;
+                            }
+                            
+                            DrawTexturePro(selected ? plate_button_hovered : hovered ? plate_button_hovered : plate_button, x32, icon.rect, {0, 0}, 0, selected ? LIGHTBLUE :  icon.unlocked ? GREEN : RED);
+                            DrawTexturePro(icon.icon, {0, 0, 16, 16}, {icon.rect.x + 11, icon.rect.y + 9, 48, 48}, {0, 0}, 0, WHITE);
+                            if(!icon.unlocked){
+                                DrawTexturePro(coin, {0, 0, 8, 8}, {icon.rect.x + 10, icon.rect.y + 61, 12, 12}, {0, 0}, 0, WHITE);
+                                DrawText(std::to_string(icon.price).c_str(), icon.rect.x + 24, icon.rect.y + 61, 14, GOLD);
+                                
                             }
                             break;
                             }
@@ -830,8 +841,9 @@ int main(int argc, char* argv[]) {
                                     }
                                 }
                                 
-                                std::string purcofrm = "Are you sure that you want to buy";
-                                DrawTextPro(LatoBold, purcofrm.c_str(), {ft_rect.x + 5, ft_rect.y + 40}, {0, 0}, 0, 14, 2.0f, WHITE);
+                                std::string purcofrm = "Do You Wish To Buy";
+                                static Vector2 length1111 = MeasureTextEx(LatoBold, purcofrm.c_str(), 18, 2.0f);
+                                DrawTextPro(LatoBold, purcofrm.c_str(), {ft_rect.x + 13+ ft_rect.x / 2 - length1111.x / 2, ft_rect.y + 35}, {0, 0}, 0, 18, 2.0f, WHITE);
                                 Vector2 icon_name_length = MeasureTextEx(LatoBold, player_icons[icon_name].name.c_str(), 24, 2.0f);
                                 DrawTextPro(LatoBold, player_icons[icon_name].name.c_str(), {ft_rect.x + ft_rect.width / 2 - icon_name_length.x / 2, ft_rect.y + 50}, {0, 0}, 0, 24, 2.0f, LIGHTBLUE);
                                 std::string confirmtxt2 = "For";
