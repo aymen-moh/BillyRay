@@ -762,6 +762,7 @@ int main(int argc, char* argv[]) {
                 static Rectangle rect  = {30, 66, 100, 100};
                 DrawLine(320, 0, 320, 416, WHITE);
                 static int current_screen = 1;
+                static int icon_name = 0;
                 /////////////////////////////////
                 DrawLine(320, 0, 320, 416, WHITE);
                 for(auto& icon : player_icons){
@@ -783,6 +784,7 @@ int main(int argc, char* argv[]) {
                                 }
                             }
                             if(!icon.unlocked and IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and CheckCollisionPointRec(mouse_pos, icon.rect)){
+                                icon_name = icon.player_id;
                                 current_screen = 2;
                             }
                             break;
@@ -796,16 +798,28 @@ int main(int argc, char* argv[]) {
                                 bool hovered = CheckCollisionPointRec(mouse_pos, button_rect1);
                                 DrawTexturePro(hovered ? plate_button_hovered : plate_button, x32, button_rect1, {0, 0}, 0, WHITE);
                                 std::string no = "No";
-                                DrawTextPro(LatoBold, no.c_str(), {button_rect1.x + 7, button_rect1.y + 3}, {0, 0}, 0, 24, 2.0f, WHITE);
+                                DrawTextPro(LatoBold, no.c_str(), {button_rect1.x + 12, button_rect1.y + 3}, {0, 0}, 0, 24, 2.0f, WHITE);
+                                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and hovered) back = true;
                                 std::string yes = "Yes";
                                 Rectangle button_rect2 = {ft_rect.x + 160, ft_rect.y + 110, 50, 30};
                                 bool hovered2 = CheckCollisionPointRec(mouse_pos, button_rect2);
                                 DrawTexturePro(hovered2 ? plate_button_hovered : plate_button, x32, button_rect2, {0, 0}, 0, WHITE);
                                 DrawTextPro(LatoBold, yes.c_str(), {button_rect2.x + 7, button_rect2.y + 3}, {0, 0}, 0, 24, 2.0f, WHITE);
+                                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) and hovered){
+
+                                }
                                 std::string purcofrm = "Are you sure that you want to buy";
                                 
                                 DrawTextPro(LatoBold, purcofrm.c_str(), {ft_rect.x + 5, ft_rect.y + 40}, {0, 0}, 0, 14, 2.0f, WHITE);
-                                DrawTextPro(LatoBold, icon.name.c_str(), {ft_rect.x + 5, ft_rect.y + 50}, {0, 0}, 0, 14, 2.0f, LIGHTBLUE);
+                                Vector2 icon_name_length = MeasureTextEx(LatoBold, player_icons[icon_name].name.c_str(), 24, 2.0f);
+                                DrawTextPro(LatoBold, player_icons[icon_name].name.c_str(), {ft_rect.x + ft_rect.width / 2 - icon_name_length.x / 2, ft_rect.y + 50}, {0, 0}, 0, 24, 2.0f, LIGHTBLUE);
+                                std::string confirmtxt2 = "For";
+                                DrawTextPro(LatoBold, confirmtxt2.c_str(), {ft_rect.x + 83, ft_rect.y + 70}, {0,0}, 0, 18, 2.0f, WHITE);
+                                DrawTextPro(LatoBold, std::to_string(balance).c_str(), {ft_rect.x + 131, ft_rect.y + 70}, {0,0}, 0, 18, 2.0f, GOLD);
+                                DrawTexturePro(coin, {0, 0, 8, 8}, {ft_rect.x + 117, ft_rect.y + 74, 12, 12}, {0, 0}, 0, WHITE);
+                                std::string confirmtxt3 = "?";
+                                Vector2 balance_length = MeasureTextEx(LatoBold, std::to_string(balance).c_str(), 18, 2.0f);
+                                DrawTextPro(LatoBold, confirmtxt3.c_str(), {ft_rect.x + 133 + balance_length.x, ft_rect.y + 70}, {0, 0}, 0, 18, 2.0f, WHITE);
                             }
                             if(back){
                                 current_screen = 1;
