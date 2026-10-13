@@ -4,7 +4,7 @@
 #include <vector>
 #include <raymath.h>
 #include "levels.h"
-#include "reasings.h"
+
 
 int balance = 120;
 Font Lato;
@@ -405,7 +405,7 @@ void play_level(
         Rectangle src_rec = {0.0f, 0.0f, static_cast<float>(sawblade.width), static_cast<float>(sawblade.height)};
         Rectangle dest_rec = {saw.sb_pos_current.x, saw.sb_pos_current.y, saw.sb_radius * 2.3f, saw.sb_radius * 2.3f};
         DrawTexturePro(sawblade, src_rec, dest_rec, {dest_rec.width / 2.0f, dest_rec.height / 2.0f}, saw.rotation, WHITE);
-    }  
+    }   
 
     
         
@@ -621,6 +621,70 @@ int main(int argc, char* argv[]) {
                         );
                         break;
                     }
+                    case 6: {
+                        play_level(
+                            player,
+                            lvl6_sawblades,
+                            lvl6_blocks,
+                            {384.0, 64.0, 32.0f, 32.0f},
+                            player_icons[selected_player].icon,
+                            bg_lvl1,
+                            sfx,
+                            {224, 64},
+                            sawblade
+                            
+                        );
+                        break;
+                        
+                    }
+                    case 7: {
+                        play_level(
+                            player,
+                            lvl7_sawblades,
+                            lvl7_blocks,
+                            {576, 32, 32.0f, 32.0f},
+                            player_icons[selected_player].icon,
+                            bg_lvl1,
+                            sfx,
+                            {64.0, 48.0},
+                            sawblade
+                            
+                        );
+                        break;
+                        
+                    }
+                    case 8: {
+                        play_level(
+                            player,
+                            lvl8_sawblades,
+                            lvl8_blocks,
+                            {384.0, 64.0, 32.0f, 32.0f},
+                            player_icons[selected_player].icon,
+                            bg_lvl1,
+                            sfx,
+                            {224.0, 64.0},
+                            sawblade
+                            
+                        );
+                        break;
+                        
+                    }
+                    case 9: {
+                        play_level(
+                            player,
+                            lvl9_sawblades,
+                            lvl9_blocks,
+                            {560.0, 160.0, 32.0f, 32.0f},
+                            player_icons[selected_player].icon,
+                            bg_lvl1,
+                            sfx,
+                            {64.0, 176.0},
+                            sawblade
+                            
+                        );
+                        break;
+                        
+                    }
                 }
                 break;
             }
@@ -711,7 +775,7 @@ int main(int argc, char* argv[]) {
             case LEVEL_MENU: {
                 ClearBackground(BLACK);
                 for(auto& button : level_grid){
-                    
+                    if(admin) button.locked = false;
                     Rectangle button_rect = {button.position.x, button.position.y, button.size.x, button.size.y};
                     Texture2D hovered_or_not_texture = CheckCollisionPointRec(mouse_pos,button_rect) ? plate_button_hovered : plate_button;
                     
@@ -764,7 +828,7 @@ int main(int argc, char* argv[]) {
                     case 3: {
                         
                         toggle({target.x + 12, target.y + 100}, admin, "Admin");
-                        toggle({target.x + 12, target.y + 110}, outline, "Block Outline");
+                        toggle({target.x + 12, target.y + 125}, outline, "Block Outline");
                     }
                 }
                 break;

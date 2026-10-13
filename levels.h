@@ -53,6 +53,15 @@ extern std::vector<Block> lvl4_blocks;
 extern Rectangle lvl4_potion;
 extern std::vector<MovingSawblade> lvl5_sawblades;
 extern std::vector<Block> lvl5_blocks;
+extern std::vector<Block> lvl6_blocks;
+extern std::vector<MovingSawblade> lvl6_sawblades;
+extern std::vector<Block> lvl7_blocks;
+extern std::vector<MovingSawblade> lvl7_sawblades;
+extern std::vector<Block> lvl8_blocks;
+extern std::vector<MovingSawblade> lvl8_sawblades;
+extern std::vector<Block> lvl9_blocks;
+extern std::vector<MovingSawblade> lvl9_sawblades;
+
 extern std::vector<LevelGrid> level_grid;
 extern std::vector<PlayerIconShopItem> player_icons;
 extern std::string death_mesagges[10];
