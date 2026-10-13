@@ -25,6 +25,7 @@ struct LevelGrid {
     Vector2 size;
     bool locked;
     int lvl_id;
+    bool exist = false;
 
 };
 struct PlayerIconShopItem {
@@ -69,6 +70,10 @@ extern std::vector<Block> lvl12_blocks;
 extern std::vector<MovingSawblade> lvl12_sawblades;
 extern std::vector<Block> lvl13_blocks;
 extern std::vector<MovingSawblade> lvl13_sawblades;
+extern std::vector<Block> lvl14_blocks;
+extern std::vector<MovingSawblade> lvl14_sawblades;
+extern std::vector<Block> lvl15_blocks;
+extern std::vector<MovingSawblade> lvl15_sawblades;
 extern std::vector<LevelGrid> level_grid;
 extern std::vector<PlayerIconShopItem> player_icons;
 extern std::string death_mesagges[10];
