@@ -104,6 +104,7 @@ Texture2D knob;
 Texture2D slider_bar;
 Texture2D slider_bar_side; // idk if i can flip it
 Texture2D coin;
+Texture2D wintxt;
 
 GameStates gameState;
 int level = 0;
@@ -414,7 +415,8 @@ void play_level(
     
     DrawTexturePro(player_icon, {0, 0, 16, 16}, player.player, {0, 0}, 0, WHITE);
     DrawFPS(50, 10);
-    DrawRectangleRec(win, GREEN);
+    DrawTexturePro(wintxt, {0, 0, 8, 8}, {win.x - 3, win.y - 3, win.width + 6, win.height + 6}, {0, 0}, 0, BLACK);
+    DrawTexturePro(wintxt, {0, 0, 8, 8}, win, {0, 0}, 0, WHITE);
     if(CheckCollisionRecs(player.player, win)) gameState = WIN_SCREEN;
     bool level_has_potion = shrink_potion.width > 0 and shrink_potion.height > 0;
     if(level_has_potion and !potion_collected){
@@ -498,6 +500,7 @@ int main(int argc, char* argv[]) {
     Texture2D locked_level_icon = LoadTexture("Assets/Textures/gui/locked_level.png");
     Texture2D shop_button = LoadTexture("Assets/Textures/gui/shop_button.png");
     Texture2D shop_button_hovered = LoadTexture("Assets/Textures/gui/shop_button_hovered.png");
+              wintxt = LoadTexture("Assets/Textures/win.png");
               coin = LoadTexture("Assets/Textures/gui/coin.png");
               player_icons[0].icon = LoadTexture("Assets/Textures/Icon.png");
               player_icons[1].icon = LoadTexture("Assets/Textures/Icon2.png");
@@ -685,6 +688,70 @@ int main(int argc, char* argv[]) {
                         break;
                         
                     }
+                    case 10: {
+                        play_level(
+                            player,
+                            lvl10_sawblades,
+                            lvl10_blocks,
+                            {432.0, 48.0, 32.0f, 32.0f},
+                            player_icons[selected_player].icon,
+                            bg_lvl1,
+                            sfx,
+                            {176.0, 48.0},
+                            sawblade
+                            
+                        );
+                        break;
+                        
+                    }
+                    case 11: {
+                        play_level(
+                            player,
+                            lvl11_sawblades,
+                            lvl11_blocks,
+                            {560.0, 336.0, 32.0f, 32.0f},
+                            player_icons[selected_player].icon,
+                            bg_lvl1,
+                            sfx,
+                            {48.0, 336.0},
+                            sawblade
+                            
+                        );
+                        break;
+                        
+                    }
+                    case 12: {
+                        play_level(
+                            player,
+                            lvl12_sawblades,
+                            lvl12_blocks,
+                            {544.0, 160.0, 32.0f, 32.0f},
+                            player_icons[selected_player].icon,
+                            bg_lvl1,
+                            sfx,
+                            {48.0, 192.0},
+                            sawblade
+                            
+                        );
+                        break;
+                        
+                    }
+                    case 13: {
+                        play_level(
+                            player,
+                            lvl13_sawblades,
+                            lvl13_blocks,
+                            {432.0, 192.0, 32.0f, 32.0f},
+                            player_icons[selected_player].icon,
+                            bg_lvl1,
+                            sfx,
+                            {64.0, 48.0},
+                            sawblade
+                            
+                        );
+                        break;
+                        
+                    }
                 }
                 break;
             }
@@ -847,7 +914,7 @@ int main(int argc, char* argv[]) {
                 /////////////////////////////////
                 DrawLine(320, 0, 320, 416, WHITE);
                 for(auto& icon : player_icons){
-                    
+                    if(admin) icon.unlocked = true;
                     switch(current_screen){
                         case 1: {
                             bool hovered = (CheckCollisionPointRec(mouse_pos, icon.rect));
