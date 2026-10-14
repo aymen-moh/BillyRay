@@ -151,7 +151,7 @@ void slider(Vector2 position, int length, float& value, bool locked, float devid
     }
     DrawTexturePro(slider_bar_side, {0, 0, -8, 8}, {position.x + 5, position.y + 4, 8, 8}, {0, 0}, 0, WHITE);
     DrawTexturePro(slider_bar_side, src, {position.x + length + 5, position.y + 4, 8, 8}, {0, 0}, 0, WHITE);
-    DrawTexturePro(slider_bar, src, {position.x + 12, position.y + 4, length - 6, 8}, {0, 0}, 0, WHITE);
+    DrawTexturePro(slider_bar, src, {position.x + 12, position.y + 4, (float)(length - 6), 8}, {0, 0}, 0, WHITE); // ai line cuz i didnt know what was preventing my git from compiling.
     DrawTexturePro(knob, src, dst, {0, 0}, 0, locked ? WHITE : drag ? BLUE : GRAY);
 
 }
@@ -1117,7 +1117,7 @@ int main(int argc, char* argv[]) {
     UnloadTexture(sawblade);
     UnloadTexture(bg_lvl1); 
     UnloadTexture(player_icon);
-    for(auto&icon : player_icons);
+    for(auto&icon : player_icons) UnloadTexture(icon.icon);
     UnloadImage(window_icon);
     UnloadFont(LatoBold);
     UnloadSound(sfx.power_up);
