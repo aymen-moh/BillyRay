@@ -22,6 +22,7 @@ Color LIGHTBLUE = {0, 255, 255, 255};
 bool rst_notf_sd = false;
 int st_menu = 1;
 int selected_player= 0;
+bool debug = false;
 Sound click_sound;
 Music bg_music[2];
 
@@ -424,7 +425,7 @@ void play_level(
 
     
     DrawTexturePro(player_icon, {0, 0, 16, 16}, player.player, {0, 0}, 0, WHITE);
-    DrawFPS(50, 10);
+    if(debug) DrawFPS(50, 10);
     DrawTexturePro(wintxt, {0, 0, 8, 8}, {win.x - 3, win.y - 3, win.width + 6, win.height + 6}, {0, 0}, 0, BLACK);
     DrawTexturePro(wintxt, {0, 0, 8, 8}, win, {0, 0}, 0, WHITE);
     if(CheckCollisionRecs(player.player, win)) gameState = WIN_SCREEN;
@@ -476,7 +477,7 @@ int main(int argc, char* argv[]) {
     std::string title = "Billy Ray V0.0.1"; //i was gonna include the version number in a variable but i am just gonna do it this way :p
     InitWindow(width, height, title.c_str());
     SetExitKey(KEY_NULL);
-    SetTargetFPS(60);
+    SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
     InitAudioDevice();
     sfx.notification_sound = LoadSound("Assets/audio/sound effects/Toast.ogg");
     sfx.notification_sound_out = LoadSound("Assets/audio/sound effects/Out.ogg");
@@ -949,6 +950,7 @@ int main(int argc, char* argv[]) {
                         toggle({target.x + 12, target.y + 100}, admin, "Admin");
                         toggle({target.x + 12, target.y + 125}, outline, "Block Outline");
                         toggle({target.x + 12, target.y + 150}, auto_respawn, "Auto Respawn");
+                        toggle({target.x + 12, target.y + 175}, debug, "Debug Mode");
                     }
                 }
                 break;
@@ -1071,14 +1073,15 @@ int main(int argc, char* argv[]) {
             }
         
         }
-    
-    Vector2 mos = GetMousePosition();
-    int mos11 = mos.x;
-    int mos22 = mos.y;
-    std::string mos1 = std::to_string(mos11);
-    std::string mos2 = std::to_string(mos22);
-    DrawText(mos1.c_str(), 50, 50, 24, WHITE);
-    DrawText(mos2.c_str(), 100, 50, 24, WHITE);
+    if(debug){
+        Vector2 mos = GetMousePosition();
+        int mos11 = mos.x;
+        int mos22 = mos.y;
+        std::string mos1 = std::to_string(mos11);
+        std::string mos2 = std::to_string(mos22);
+        DrawText(mos1.c_str(), 50, 50, 24, WHITE);
+        DrawText(mos2.c_str(), 100, 50, 24, WHITE);
+    }
     EndDrawing();
     }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
