@@ -1084,6 +1084,25 @@ int main(int argc, char* argv[]) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     UnloadTexture(plate_button);
     UnloadTexture(plate_button_hovered);
+    UnloadTexture(shop_button);
+    UnloadTexture(shop_button_hovered);
+    UnloadTexture(quit_button);
+    UnloadTexture(quit_button_hovered);
+    UnloadTexture(play_button);
+    UnloadTexture(play_button_hovered);
+    UnloadTexture(settings_button);
+    UnloadTexture(settings_button_hovered);
+    UnloadTexture(locked_level_icon);
+    UnloadTexture(wintxt);
+    UnloadTexture(coin);
+    UnloadTexture(checkbox);
+    UnloadTexture(checkbox_hovered);
+    UnloadTexture(checkbox_toggled);
+    UnloadTexture(checkbox_toggled_hovered);
+    UnloadTexture(shrinking_potion);
+    UnloadTexture(knob);
+    UnloadTexture(slider_bar);
+    UnloadTexture(slider_bar_side);
     UnloadTexture(menu_button);
     UnloadTexture(menu_button_hovered);
     UnloadTexture(restart_button_hovered);
@@ -1092,16 +1111,23 @@ int main(int argc, char* argv[]) {
     UnloadTexture(next_level_button_hovered);
     UnloadTexture(cross_button);
     UnloadTexture(cross_button_hovered);
+    UnloadTexture(resume_button_hovered);
+    UnloadTexture(resume_button);
     UnloadFont(Lato);
     UnloadTexture(sawblade);
-
-    UnloadTexture(bg_lvl1);
-    UnloadImage(window_icon); 
+    UnloadTexture(bg_lvl1); 
     UnloadTexture(player_icon);
+    for(auto&icon : player_icons);
+    UnloadImage(window_icon);
+    UnloadFont(LatoBold);
+    UnloadSound(sfx.power_up);
     UnloadSound(sfx.failsound);
+    UnloadSound(click_sound);
     UnloadSound(sfx.win_sound); 
     UnloadSound(sfx.notification_sound);
     UnloadSound(sfx.notification_sound_out);
+    UnloadMusicStream(bg_music[0]);
+    UnloadMusicStream(bg_music[1]);
     CloseAudioDevice();
     CloseWindow();
 
