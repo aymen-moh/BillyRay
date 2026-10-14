@@ -30,7 +30,7 @@ jobs:
     - name: Compile C++ Game Code
       run: |
         mkdir build
-        em++ main.cpp raylib_src/build/raylib/libraylib.a -o build/index.html \
+        em++ main.cpp levels.cpp raylib_src/build/raylib/libraylib.a -o build/index.html \
           -Os -Wall \
           -I./raylib_src/src \
           -s USE_GLFW=3 \
