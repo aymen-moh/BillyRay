@@ -11,19 +11,19 @@ Font Lato;
 Font LatoBold;
 int width;
 bool music_enabled = true;
+bool music_paused = false;
 bool sfx_enabled = true;
 bool admin = false; 
 bool outline = true;
 bool auto_respawn = false;
 float sfx_volume = 1.0f;
-float music_volume;
+float music_volume = 0.45f;
 Color LIGHTBLUE = {0, 255, 255, 255};
 bool rst_notf_sd = false;
 int st_menu = 1;
 int selected_player= 0;
 Sound click_sound;
-Music bg_music_1;
-Music bg_music_2;
+Music bg_music[2];
 
 bool check_rectangle_equality(Rectangle Rectangle1, Rectangle Rectangle2){
     bool E_X = false;
@@ -93,6 +93,7 @@ struct SFX {
     Sound power_up;
 };
 
+
 SFX sfx;
 Texture2D cross_button;
 Texture2D cross_button_hovered;
@@ -134,13 +135,14 @@ void slider(Vector2 position, int length, float& value, bool locked, float devid
     
     Vector2 knob_pos = {position.x + value * devide_value_by, position.y};
     static Rectangle src = {0, 0, 8, 8};
-    static bool drag = false;
+    static float* dragged = nullptr; // ai line
     Rectangle dst = {knob_pos.x, knob_pos.y, 16, 16};
     Vector2 md = GetMouseDelta();
     Vector2 mp = GetMousePosition();
     bool hovered = CheckCollisionPointRec(mp, dst);
-    if(hovered and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) drag = true;
-    if(!IsMouseButtonDown(MOUSE_BUTTON_LEFT)) drag = false;
+    if(hovered and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) dragged = &value; // ai line
+    if(!IsMouseButtonDown(MOUSE_BUTTON_LEFT)) dragged = nullptr; // ai line
+    bool drag = (dragged == &value); // ai line
     if(drag and !locked){
         knob_pos.x += md.x;
         knob_pos.x = Clamp(knob_pos.x, position.x, position.x + length);
@@ -334,6 +336,7 @@ void play_level(
     static bool shrunk = false;
     static bool dashing = false;
     static float dash_time = 0.0f;
+    static int current_music = 0;
     static Vector2 mov_dir = {0, 0};
     Vector2 dir = {(float)(IsKeyDown(KEY_D)) - (IsKeyDown(KEY_A)), (float)(IsKeyDown(KEY_W)) - (IsKeyDown(KEY_S))};
     static bool shrinking_sound = true;
@@ -351,7 +354,7 @@ void play_level(
         rst_notf_sd = true;
         
     }
-
+    
     onetimeloop = false;
     
     player.player.x = player.position.x;
@@ -435,7 +438,6 @@ void play_level(
         
     }
     if(shrunk) shrink(player, 1.5, shrinking_sound);
-    push_notification("hi hru", 2.0f, 100.0f, 2.0f, rst_notf_sd);
     
     
 }
@@ -481,7 +483,8 @@ int main(int argc, char* argv[]) {
     sfx.power_up = LoadSound("Assets/audio/sound effects/edr-power-up-01a-484722.mp3"); 
     sfx.win_sound = LoadSound("Assets/audio/sound effects/mixkit-tile-game-reveal-960.wav"); 
     click_sound = LoadSound("Assets/audio/sound effects/Click_stereo.ogg.mp3");
-    bg_music_1 = LoadMusicStream();
+    bg_music[0] = LoadMusicStream("Assets/audio/Music/BG MUSIC/the_mountain-8-bit-retro-522443.mp3");
+    bg_music[1] = LoadMusicStream("Assets/audio/Music/BG MUSIC/moodmode-retro-game-arcade-236133.mp3");
     Player player;
     WinBlocks winblocks;
     player.position = {32.0, 304.0};
@@ -538,7 +541,7 @@ int main(int argc, char* argv[]) {
         &sfx.notification_sound_out,
         &sfx.power_up
     };
-
+    
     ImageFormat(&window_icon, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
     SetWindowIcon(window_icon);
     bool win_sound_played = false;
@@ -547,13 +550,17 @@ int main(int argc, char* argv[]) {
     Lato = LoadFontEx("Assets/Fonts/Lato/Lato-Regular.ttf", 30, 0, 0);
     LatoBold = LoadFontEx("Assets/Fonts/Lato/Lato-Bold.ttf", 30, 0, 0);
     while(WindowShouldClose() == false and !QUITCONFIRMED){
-
+        static int current_music = 0;
+        if (!IsMusicStreamPlaying(bg_music[0]) and !IsMusicStreamPlaying(bg_music[1])) { current_music = GetRandomValue(0, 1); PlayMusicStream(bg_music[current_music]); bg_music[current_music].looping = false;}
+        UpdateMusicStream(bg_music[current_music]);
         BeginDrawing();
         Vector2 mouse_pos = GetMousePosition();
         Rectangle p_rect = {player.position.x, player.position.y, player.p_width, player.p_height};
+        for(auto&m : bg_music) SetMusicVolume(m, music_volume);
         for(auto& sound_effect : all_sfx){
             SetSoundVolume(*sound_effect, sfx_volume);
         }
+        
         switch(gameState){
             case GAME: {
 
@@ -931,7 +938,7 @@ int main(int argc, char* argv[]) {
                 switch(st_menu){
                     case 1: {
                         slider_toggle({target.x + 12, target.y + 150}, sfx_enabled, "SFX", sfx_volume, 100, 100.0f, false, true, true, true, false);
-                        toggle({target.x + 12, target.y + 125}, music_enabled, "MUSIC");
+                        slider_toggle({target.x + 12, target.y + 125}, music_enabled, "MUSIC", music_volume, 100, 100.0f, false, true, true, true, false);
                         
                         
                         break;
